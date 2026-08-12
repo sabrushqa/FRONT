@@ -1,0 +1,215 @@
+/* Backoffice Dossier Detail — uses same styles as dossier-detail */
+@use './dossier-detail' as *;
+
+/* Le composant partagé CommercialDossierDetailPage porte un thème jaune/or
+   par défaut (commercial-dossier-detail.scss). Cote back-office (pas de
+   classe .commercial-mode), on le remplace par le rose de l'espace BOA. */
+.commercial-dossier-detail-page:not(.commercial-mode) {
+  --cd-primary: #db2777;
+  --cd-primary-soft: #fce7f3;
+  --cd-primary-border: #fbcfe8;
+  --cd-primary-dark: #9d174d;
+  --cd-success: #18864b;
+  --cd-danger: #b42318;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) .page-head {
+  background: linear-gradient(135deg, #0b1120 0%, #2e0a1f 55%, #db2777 100%) !important;
+  border-bottom: 3px solid #db2777 !important;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) .page-kicker {
+  color: #fbcfe8 !important;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) .page-kicker::before {
+  background: #db2777 !important;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) .header-actions .btn-primary {
+  background: #ffffff !important;
+  color: var(--cd-primary-dark) !important;
+  box-shadow: 0 8px 18px rgba(157, 23, 77, 0.18) !important;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) .detail-tab-btn:hover,
+.commercial-dossier-detail-page:not(.commercial-mode) .detail-tab-btn.is-active {
+  color: var(--cd-primary-dark);
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) > .page-card:nth-of-type(2) {
+  border: 1px solid var(--cd-primary-border);
+  box-shadow: 0 8px 24px rgba(157, 23, 77, 0.08);
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) > .page-card:nth-of-type(2) .section-head {
+  align-items: center;
+  border-bottom: 1px solid var(--cd-primary-border);
+  background: #fff7fb !important;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) > .page-card:nth-of-type(2) .section-head h3 {
+  color: #0f172a;
+  font-size: 15px;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) > .page-card:nth-of-type(2) .section-head .page-kicker {
+  color: var(--cd-primary-dark) !important;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) .correction-review-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  padding: 18px 24px;
+  background: #ffffff;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) .correction-review-grid .form-field > span,
+.commercial-dossier-detail-page:not(.commercial-mode) .correction-review-block > strong {
+  color: #486581;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) .correction-review-grid .form-input,
+.commercial-dossier-detail-page:not(.commercial-mode) .correction-multiselect-trigger {
+  min-height: 42px;
+  border-color: #cfdee9;
+  border-radius: 9px;
+  background-color: #ffffff;
+  color: #102a43;
+  font-size: 12px;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) .correction-review-grid .form-input:focus,
+.commercial-dossier-detail-page:not(.commercial-mode) .correction-multiselect-trigger:focus,
+.commercial-dossier-detail-page:not(.commercial-mode) .correction-multiselect-trigger:focus-visible {
+  border-color: var(--cd-primary);
+  box-shadow: 0 0 0 3px rgba(219, 39, 119, 0.12);
+  outline: none;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) .correction-multiselect-trigger > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) .correction-multiselect-trigger > span:last-child {
+  flex: 0 0 auto;
+  color: #829ab1;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) .correction-multiselect-menu {
+  border-color: #cfdee9;
+  border-radius: 10px;
+  box-shadow: 0 14px 30px rgba(16, 42, 67, 0.12);
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) .correction-multiselect-search input {
+  min-height: 34px;
+  border-color: #cfdee9;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) .correction-multiselect-option input {
+  accent-color: var(--cd-primary);
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) .correction-review-grid .field-full {
+  grid-column: 1 / -1;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) > .page-card:nth-of-type(2) .form-actions {
+  justify-content: flex-end;
+  border-top: 1px solid var(--cd-primary-border);
+  background: #fff7fb;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) > .page-card:nth-of-type(2) .form-actions .btn-primary,
+.commercial-dossier-detail-page:not(.commercial-mode) > .page-card:nth-of-type(2) .form-actions .btn-secondary {
+  min-height: 38px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) > .page-card:nth-of-type(2) .form-actions .btn-primary {
+  background: var(--cd-success) !important;
+  color: #ffffff !important;
+  box-shadow: 0 7px 16px rgba(24, 134, 75, 0.18) !important;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) > .page-card:nth-of-type(2) .form-actions .btn-primary:hover:not(:disabled) {
+  background: #126c3d !important;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) > .page-card:nth-of-type(2) .form-actions .btn-secondary {
+  border-color: #f0c2d6;
+  background: #ffffff;
+  color: var(--cd-primary-dark);
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) > .page-card:nth-of-type(2) .form-actions .btn-secondary:hover:not(:disabled) {
+  border-color: #e78ab4;
+  background: var(--cd-primary-soft);
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) .status-strip .status-chip {
+  border-color: var(--cd-primary-border);
+  background: var(--cd-primary-soft);
+  color: var(--cd-primary-dark);
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) .page-alert.success {
+  border-color: #bce5cb;
+  background: #eaf8ef;
+  color: #166534;
+}
+
+.commercial-dossier-detail-page:not(.commercial-mode) .page-alert.error {
+  border-color: #f1c7c2;
+  background: #fef0ef;
+  color: #922b21;
+}
+
+@media (max-width: 900px) {
+  .commercial-dossier-detail-page:not(.commercial-mode) .correction-review-grid {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  .commercial-dossier-detail-page:not(.commercial-mode) > .page-card:nth-of-type(2) .form-actions {
+    justify-content: stretch;
+    padding: 14px 16px;
+  }
+
+  .commercial-dossier-detail-page:not(.commercial-mode) > .page-card:nth-of-type(2) .form-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+[data-theme='dark'] .commercial-dossier-detail-page:not(.commercial-mode) {
+  --cd-primary-soft: rgba(219, 39, 119, 0.12);
+  --cd-primary-border: rgba(244, 114, 182, 0.28);
+}
+
+[data-theme='dark'] .commercial-dossier-detail-page:not(.commercial-mode) > .page-card:nth-of-type(2) .section-head,
+[data-theme='dark'] .commercial-dossier-detail-page:not(.commercial-mode) > .page-card:nth-of-type(2) .form-actions,
+[data-theme='dark'] .commercial-dossier-detail-page:not(.commercial-mode) .correction-review-grid {
+  background: #161d2b !important;
+}
+
+[data-theme='dark'] .commercial-dossier-detail-page:not(.commercial-mode) .correction-review-grid .form-input,
+[data-theme='dark'] .commercial-dossier-detail-page:not(.commercial-mode) .correction-multiselect-trigger {
+  border-color: rgba(255, 255, 255, 0.12);
+  background-color: #111827;
+  color: #e5edf6;
+}

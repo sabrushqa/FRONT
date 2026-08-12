@@ -1,0 +1,1476 @@
+/* ============================================================
+   WORKSPACE SHELL — Portail d'Affiliation
+   Style : Banking professionnel
+   Palette : Bleu institutionnel profond, coins rectangulaires
+   Drawer : Blanc strict (résiste au dark mode)
+   ============================================================ */
+
+:root {
+  /* ---------- Tokens couleur ---------- */
+  --bank-navy-900:   var(--lc-navy);   /* Bleu institutionnel profond */
+  --bank-navy-800:   #102a5c;
+  --bank-navy-700:   #1a3a73;
+  --bank-navy-600:   #2451a0;   /* Accent / hover */
+  --bank-navy-500:   #3a6dc4;
+  --bank-navy-50:    #eef2fa;   /* Fond très léger pour states */
+
+  /* Accent jaune de marque (remplace l'ancien sky-blue) — navy + or */
+  --bank-sky:        var(--lc-gold);   /* Jaune de marque — accent lumineux */
+  --bank-sky-600:    #e0a800;   /* Plus foncé pour hover/contraste */
+  --bank-sky-700:    #9a7400;   /* Or foncé : texte/bordures sur fond clair */
+  --bank-sky-100:    #fbefc2;   /* Halo clair */
+  --bank-sky-50:     #fef9e7;   /* Fond très léger */
+
+  --bank-gold:       #c9a04a;   /* Accent secondaire discret */
+  --bank-success:    #1e7d3a;
+  --bank-warn:       #c4632b;
+  --bank-error:      #b3261e;
+
+  --bank-ink-900:    #0f172a;   /* Texte principal */
+  --bank-ink-700:    #334155;
+  --bank-ink-500:    #64748b;
+  --bank-ink-400:    #94a3b8;
+  --bank-ink-300:    #cbd5e1;
+  --bank-ink-200:    #e2e8f0;
+  --bank-ink-100:    #f1f5f9;
+  --bank-ink-50:     #f8fafc;
+
+  --bank-white:      #ffffff;
+
+  /* ---------- Tokens layout ---------- */
+  --drawer-width:           264px;
+  --drawer-width-collapsed: 72px;
+  --topbar-height:          68px;
+  --content-max-width:      1440px;
+  --content-padding-x:      16px;
+  --content-padding-y:      14px;
+
+  /* ---------- Tokens visuels ---------- */
+  --bank-radius:        2px;     /* Coins quasi rectangulaires */
+  --bank-radius-card:   4px;
+  --bank-border:        1px solid var(--bank-ink-200);
+  --bank-border-strong: 1px solid var(--bank-ink-300);
+  --bank-shadow-sm:     0 1px 2px rgba(15, 23, 42, 0.04);
+  --bank-shadow-md:     0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --bank-shadow-drawer: 1px 0 0 var(--bank-ink-200);
+  --bank-shadow-topbar: 0 1px 0 var(--bank-ink-200);
+
+  --bank-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --bank-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+
+  --bank-transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  --role-account-accent: #c14678;
+  --role-account-contrast: #ffffff;
+  --role-account-soft: #fff7fa;
+  --role-account-hover-border: rgba(193, 70, 120, 0.45);
+
+  display: block;
+  height: 100vh;
+  font-family: var(--bank-font);
+  color: var(--bank-ink-900);
+  background: var(--bank-ink-50);
+}
+
+/* ============================================================
+   CONTAINER PRINCIPAL
+   ============================================================ */
+.ws-shell {
+  height: 100vh;
+  background: var(--bank-ink-50);
+}
+
+.ws-shell.shell-drawer-collapsed {
+  --content-padding-x: 10px;
+  --content-max-width: none;
+  --commercial-content-max-width: none;
+}
+
+/* ============================================================
+   DRAWER — Blanc strict (anti dark mode)
+   ============================================================ */
+.ws-drawer {
+  width: var(--drawer-width);
+  background: var(--bank-white) !important;
+  color: var(--bank-ink-900);
+  border-right: var(--bank-border);
+  box-shadow: var(--bank-shadow-drawer);
+  transition: width var(--bank-transition);
+
+  /* Override Material MDC */
+  &.mat-drawer,
+  & .mat-drawer-inner-container {
+    background: var(--bank-white) !important;
+  }
+
+  &.drawer-collapsed {
+    width: var(--drawer-width-collapsed);
+  }
+
+  &.drawer-mobile {
+    width: min(var(--drawer-width), 86vw);
+    box-shadow: 0 0 24px rgba(15, 23, 42, 0.18);
+  }
+}
+
+/* Le drawer suit le mode sombre (au lieu d'etre force en blanc) — meme
+   fond que le reste du shell (workspace-shell.scss), avec une specificite
+   superieure (scope de role) pour gagner sur la regle blanche ci-dessus. */
+[data-theme="dark"] .ws-drawer,
+[data-theme="dark"] .ws-drawer .mat-drawer-inner-container {
+  background: #181B28 !important;
+  color: #C8D0E8 !important;
+}
+
+.drawer-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bank-white);
+}
+
+/* ----- Logo zone ----- */
+.drawer-logo-zone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: var(--topbar-height);
+  padding: 12px 16px;
+  border-bottom: var(--bank-border);
+  background: var(--bank-white);
+  flex-shrink: 0;
+}
+
+.drawer-logo-wrap {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.drawer-logo-img {
+  height: 44px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Quand drawer collapsed : on cache le logo (il apparaîtra dans la topbar) */
+.drawer-collapsed .drawer-logo-zone {
+  justify-content: center;
+  padding: 12px 8px;
+}
+
+.drawer-collapsed .drawer-logo-wrap {
+  display: none;
+}
+
+.drawer-collapse-btn {
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  border-radius: var(--bank-radius) !important;
+  color: var(--bank-ink-500) !important;
+  background: transparent !important;
+  flex-shrink: 0;
+  transition: background var(--bank-transition), color var(--bank-transition);
+
+  &:hover {
+    background: var(--bank-ink-100) !important;
+    color: var(--bank-navy-900) !important;
+  }
+
+  &--centered {
+    margin: 0 auto;
+  }
+
+  .mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+  }
+}
+
+.desktop-only { display: inline-flex; }
+.mobile-only  { display: none; }
+
+/* ----- Compte utilisateur dans le drawer ----- */
+.drawer-account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  margin: 16px 12px 8px;
+  background: var(--bank-navy-50);
+  border-left: 3px solid var(--role-account-accent);
+  border-radius: var(--bank-radius);
+
+  .drawer-account-avatar {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    background: var(--role-account-accent);
+    color: var(--role-account-contrast);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    border-radius: var(--bank-radius);
+  }
+
+  .drawer-account-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+
+    strong {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--bank-ink-900);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    span {
+      font-size: 11px;
+      color: var(--bank-ink-500);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+  }
+}
+
+.drawer-account-mini {
+  display: flex;
+  justify-content: center;
+  padding: 16px 8px 8px;
+
+  .drawer-account-avatar {
+    width: 36px;
+    height: 36px;
+    background: var(--role-account-accent);
+    color: var(--role-account-contrast);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 12px;
+    border-radius: var(--bank-radius);
+  }
+}
+
+/* ----- Navigation ----- */
+.drawer-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0 16px;
+
+  /* Scrollbar discrète */
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    background: var(--bank-ink-200);
+    border-radius: 2px;
+  }
+  &::-webkit-scrollbar-thumb:hover { background: var(--bank-ink-300); }
+}
+
+.drawer-nav-heading {
+  margin: 16px 20px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--bank-ink-400);
+}
+
+.drawer-nav-divider {
+  margin: 12px 16px;
+  border-top: var(--bank-border);
+}
+
+.drawer-nav-list {
+  padding: 0 !important;
+
+  /* Override Material list */
+  ::ng-deep .mat-mdc-list-item {
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+
+    .mdc-list-item__content,
+    .mat-mdc-list-item-unscoped-content {
+      padding: 0 !important;
+    }
+
+    .mdc-list-item__primary-text {
+      color: inherit !important;
+    }
+  }
+}
+
+.drawer-nav-item {
+  display: block;
+  position: relative;
+  width: calc(100% - 24px);
+  padding: 0;
+  text-decoration: none;
+  text-align: left;
+  font: inherit;
+  color: var(--bank-ink-700);
+  background: transparent;
+  margin: 2px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--bank-radius-card);
+  overflow: hidden;
+  transition:
+    background var(--bank-transition),
+    color var(--bank-transition),
+    border-color var(--bank-transition),
+    box-shadow var(--bank-transition);
+  cursor: pointer;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) scaleY(0);
+    width: 3px;
+    height: 60%;
+    background: var(--bank-sky);
+    border-radius: 0 2px 2px 0;
+    transition: transform var(--bank-transition);
+    z-index: 1;
+  }
+
+  .nav-item-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    min-height: 44px;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+
+    &.nav-mini {
+      padding: 11px 0;
+      justify-content: center;
+    }
+  }
+
+  .nav-item-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    color: var(--bank-ink-500);
+    border-radius: var(--bank-radius);
+    transition: color var(--bank-transition), background var(--bank-transition);
+
+    .mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      line-height: 20px;
+    }
+  }
+
+  .nav-item-label {
+    flex: 1;
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0.1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color var(--bank-transition), font-weight var(--bank-transition);
+  }
+
+  .nav-item-badge {
+    flex-shrink: 0;
+    min-width: 22px;
+    height: 20px;
+    padding: 0 7px;
+    background: var(--bank-ink-100);
+    color: var(--bank-ink-700);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 20px;
+    text-align: center;
+    border-radius: var(--bank-radius);
+    font-variant-numeric: tabular-nums;
+    transition: background var(--bank-transition), color var(--bank-transition);
+  }
+
+  &:hover {
+    background: var(--bank-sky-50);
+    color: var(--bank-navy-900);
+    border-color: var(--bank-sky-100);
+
+    .nav-item-icon {
+      color: var(--bank-sky-700);
+      background: var(--bank-white);
+    }
+
+    .nav-item-label {
+      color: var(--bank-navy-900);
+    }
+
+    &::before {
+      transform: translateY(-50%) scaleY(0.5);
+      background: var(--bank-sky);
+      opacity: 0.5;
+    }
+  }
+
+  &.is-active,
+  &.is-active:hover,
+  &.is-active:focus,
+  &.is-active:focus-visible {
+    background: var(--role-account-accent);
+    color: var(--role-account-contrast);
+    border-color: var(--role-account-accent);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+
+    &::before {
+      transform: translateY(-50%) scaleY(1);
+      background: var(--role-account-contrast);
+      opacity: 1;
+    }
+
+    .nav-item-icon {
+      color: var(--role-account-contrast);
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .nav-item-label {
+      color: var(--role-account-contrast);
+      font-weight: 600;
+    }
+
+    .nav-item-badge {
+      background: transparent;
+      color: var(--role-account-contrast);
+      box-shadow: none;
+    }
+  }
+
+  &.is-active ::ng-deep .mdc-list-item__content,
+  &.is-active ::ng-deep .mat-mdc-list-item-unscoped-content {
+    width: 100% !important;
+    background: var(--role-account-accent) !important;
+  }
+
+  &.is-active ::ng-deep .mat-mdc-list-item-persistent-ripple,
+  &.is-active ::ng-deep .mdc-list-item__ripple {
+    background: transparent !important;
+  }
+}
+
+.drawer-collapsed .drawer-nav-item {
+  margin: 2px 8px;
+
+  &::before {
+    display: none;
+  }
+
+  .nav-item-inner.nav-mini {
+    padding: 10px 0;
+    justify-content: center;
+  }
+
+  .nav-item-icon {
+    width: 32px;
+    height: 32px;
+
+    .mat-icon {
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+      line-height: 22px;
+    }
+  }
+
+  &.is-active {
+    background: var(--role-account-accent);
+    border-color: var(--role-account-accent);
+
+    .nav-item-icon {
+      background: transparent;
+      color: var(--role-account-contrast);
+      box-shadow: none;
+    }
+  }
+
+  &:hover:not(.is-active) {
+    background: var(--bank-sky-50);
+
+    .nav-item-icon {
+      background: var(--bank-white);
+      color: var(--bank-sky-700);
+    }
+  }
+}
+
+/* ----- Footer drawer ----- */
+.drawer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-top: var(--bank-border);
+  background: var(--bank-ink-50);
+  flex-shrink: 0;
+
+  .drawer-footer-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--bank-ink-700);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .drawer-footer-version {
+    font-size: 11px;
+    color: var(--bank-ink-500);
+    font-family: var(--bank-mono);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ============================================================
+   CONTENU PRINCIPAL
+   ============================================================ */
+.ws-content {
+  background: var(--bank-ink-50);
+  overflow-x: hidden;
+}
+
+.ws-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-width: 0;
+}
+
+/* ============================================================
+   TOPBAR
+   ============================================================ */
+.ws-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--topbar-height);
+  padding: 0 var(--content-padding-x);
+  background: var(--bank-white);
+  border-bottom: var(--bank-border);
+  box-shadow: var(--bank-shadow-sm);
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  flex: 1;
+}
+
+.topbar-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: var(--bank-border);
+  border-radius: var(--bank-radius);
+  color: var(--bank-ink-700);
+  cursor: pointer;
+  transition: background var(--bank-transition), border-color var(--bank-transition);
+
+  &:hover {
+    background: var(--bank-ink-100);
+    border-color: var(--bank-ink-300);
+  }
+
+  .mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+  }
+}
+
+/* Logo dans la topbar (visible si drawer collapsed ou mobile) */
+.topbar-logo {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding-right: 16px;
+  border-right: var(--bank-border);
+  flex-shrink: 0;
+  animation: logoFadeIn 200ms ease-out;
+}
+
+.topbar-logo-img {
+  height: 38px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.shell-drawer-collapsed {
+  .topbar-left {
+    gap: 10px;
+  }
+
+  .topbar-logo {
+    height: 40px;
+    padding-right: 10px;
+  }
+
+  .topbar-logo-img {
+    height: 32px;
+  }
+}
+
+@keyframes logoFadeIn {
+  from { opacity: 0; transform: translateX(-4px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.topbar-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.topbar-breadcrumb-root {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  background: var(--bank-navy-900);
+  color: var(--bank-white);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  border-radius: var(--bank-radius);
+  border-bottom: 2px solid var(--bank-sky);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.topbar-breadcrumb-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.topbar-breadcrumb-page {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--bank-ink-900);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar-breadcrumb-subtitle {
+  font-size: 12px;
+  color: var(--bank-ink-500);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* ----- Boutons d'action topbar ----- */
+.topbar-action-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  min-width: 40px;
+  padding: 0 10px;
+  background: var(--role-account-accent);
+  border: 1px solid var(--role-account-accent);
+  border-radius: var(--bank-radius);
+  color: var(--role-account-contrast);
+  cursor: pointer;
+  transition: background var(--bank-transition), border-color var(--bank-transition), color var(--bank-transition);
+
+  &:hover {
+    background: #f9cf4d;
+    border-color: #d9a916;
+    color: var(--bank-navy-900);
+  }
+
+  .mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+  }
+}
+
+.topbar-action-label {
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Override mat-badge pour cohérence visuelle */
+::ng-deep .topbar-action-btn .mat-badge-content {
+  background: var(--bank-error) !important;
+  color: var(--bank-white) !important;
+  font-family: var(--bank-font) !important;
+  font-weight: 700 !important;
+  font-size: 10px !important;
+  border-radius: var(--bank-radius) !important;
+  border: 1.5px solid var(--bank-white) !important;
+}
+
+/* Theme toggle wrapper */
+.topbar-theme-toggle {
+  display: inline-flex;
+}
+
+/* Divider vertical */
+.topbar-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--bank-ink-200);
+}
+
+/* ----- Bouton compte topbar ----- */
+.topbar-account-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 12px 0 6px;
+  background: transparent;
+  border: var(--bank-border);
+  border-left: 3px solid var(--role-account-accent);
+  border-radius: var(--bank-radius);
+  color: var(--bank-ink-900);
+  cursor: pointer;
+  transition: background var(--bank-transition), border-color var(--bank-transition);
+
+  &:hover {
+    background: var(--role-account-soft);
+    border-color: var(--role-account-hover-border);
+    border-left-color: var(--role-account-accent);
+  }
+}
+
+.topbar-avatar {
+  width: 32px;
+  height: 32px;
+  background: var(--role-account-accent);
+  color: var(--role-account-contrast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  border-radius: var(--bank-radius);
+  flex-shrink: 0;
+}
+
+.topbar-account-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+  min-width: 0;
+
+  strong {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--bank-ink-900);
+    white-space: nowrap;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  span {
+    font-size: 11px;
+    color: var(--bank-ink-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 1px;
+  }
+}
+
+.topbar-account-caret {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  line-height: 18px !important;
+  color: var(--role-account-accent);
+  margin-left: 2px;
+}
+
+/* ============================================================
+   MENUS DÉROULANTS (Notifications + Compte)
+   ============================================================ */
+::ng-deep .ws-menu-panel.mat-mdc-menu-panel {
+  min-width: 320px !important;
+  max-width: 380px !important;
+  margin-top: 8px !important;
+  background: var(--bank-white) !important;
+  border: var(--bank-border) !important;
+  border-radius: var(--bank-radius-card) !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.10) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+
+  .mat-mdc-menu-content {
+    padding: 0 !important;
+  }
+}
+
+.menu-panel-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  background: var(--bank-navy-50);
+  border-bottom: var(--bank-border);
+
+  strong {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--bank-navy-900);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  span {
+    font-size: 12px;
+    color: var(--bank-ink-500);
+  }
+
+  &--account {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    background: var(--bank-white);
+    border-left: 3px solid var(--role-account-accent);
+
+    strong { color: var(--bank-ink-900); text-transform: none; letter-spacing: 0; font-size: 14px; }
+    span { color: var(--bank-ink-500); font-size: 12px; }
+  }
+}
+
+.menu-account-avatar {
+  width: 38px;
+  height: 38px;
+  background: var(--role-account-accent);
+  color: var(--role-account-contrast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  border-radius: var(--bank-radius);
+  flex-shrink: 0;
+}
+
+::ng-deep .cdk-overlay-pane .commercial-account-menu,
+::ng-deep .cdk-overlay-pane .commercial-account-menu .menu-panel-head--account,
+::ng-deep .cdk-overlay-pane .commercial-account-menu .menu-account-avatar {
+  --role-account-accent: var(--lc-gold);
+  --role-account-contrast: var(--lc-navy);
+  --role-account-soft: #fff9e8;
+  --role-account-hover-border: rgba(255, 210, 36, 0.65);
+}
+
+::ng-deep .cdk-overlay-pane .commercial-account-menu .menu-panel-head--account {
+  border-left-color: var(--lc-gold) !important;
+}
+
+::ng-deep .cdk-overlay-pane .commercial-account-menu .menu-account-avatar {
+  background: var(--lc-gold) !important;
+  color: var(--lc-navy) !important;
+}
+
+.menu-panel-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 16px;
+  color: var(--bank-ink-400);
+
+  .mat-icon {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+    line-height: 36px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--bank-ink-500);
+  }
+}
+
+.menu-notif-item {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 10px !important;
+  padding: 12px 16px !important;
+  border-bottom: var(--bank-border);
+  min-height: auto !important;
+  height: auto !important;
+  font-family: var(--bank-font) !important;
+
+  &:last-child { border-bottom: none; }
+
+  &:hover { background: var(--bank-sky-50) !important; }
+
+  .notif-dot {
+    width: 8px;
+    height: 8px;
+    margin-top: 6px;
+    background: transparent;
+    border: 1px solid var(--bank-ink-300);
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &--new {
+      background: var(--bank-sky);
+      border-color: var(--bank-sky);
+      box-shadow: 0 0 0 3px var(--bank-sky-100);
+    }
+  }
+
+  .notif-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    strong {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--bank-ink-900);
+      line-height: 1.3;
+    }
+
+    small {
+      font-size: 11.5px;
+      color: var(--bank-ink-500);
+      line-height: 1.3;
+    }
+  }
+}
+
+/* Items menu standard (compte) */
+::ng-deep .ws-menu-panel .mat-mdc-menu-item {
+  font-family: var(--bank-font) !important;
+  font-size: 13px !important;
+  color: var(--bank-ink-900) !important;
+  min-height: 42px !important;
+
+  .mat-icon {
+    color: var(--bank-ink-500) !important;
+    margin-right: 12px !important;
+  }
+
+  &:hover {
+    background: var(--bank-sky-50) !important;
+    color: var(--bank-navy-900) !important;
+
+    .mat-icon { color: var(--bank-sky-700) !important; }
+  }
+}
+
+/* ============================================================
+   SUMMARY TILES (Métriques)
+   ============================================================ */
+.ws-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  padding: var(--content-padding-y) var(--content-padding-x) 0;
+}
+
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 20px;
+  background: var(--bank-white);
+  border: var(--bank-border);
+  border-left: 3px solid var(--bank-sky);
+  border-radius: var(--bank-radius-card);
+  box-shadow: var(--bank-shadow-sm);
+  transition: box-shadow var(--bank-transition), border-left-color var(--bank-transition);
+
+  &:hover {
+    box-shadow: var(--bank-shadow-md);
+    border-left-color: var(--bank-sky-700);
+  }
+
+  .metric-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--bank-ink-500);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+
+  .metric-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--bank-ink-900);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    margin: 2px 0;
+  }
+
+  .metric-helper {
+    font-size: 12px;
+    color: var(--bank-ink-500);
+  }
+}
+
+/* ============================================================
+   ALERTES
+   ============================================================ */
+.ws-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px var(--content-padding-x) 0;
+  padding: 12px 16px;
+  border-radius: var(--bank-radius);
+  border-left: 3px solid;
+  font-size: 13px;
+  font-weight: 500;
+
+  .mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    flex-shrink: 0;
+  }
+
+  &--error {
+    background: #fef2f2;
+    border-left-color: var(--bank-error);
+    color: #7f1d1d;
+
+    .mat-icon { color: var(--bank-error); }
+  }
+
+  &--info {
+    background: var(--bank-navy-50);
+    border-left-color: var(--bank-navy-700);
+    color: var(--bank-navy-900);
+
+    .mat-icon {
+      color: var(--bank-navy-700);
+      animation: spin 1.4s linear infinite;
+    }
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   ZONE PAGE (router-outlet)
+   ============================================================ */
+.ws-page {
+  flex: 1;
+  padding: var(--content-padding-y) var(--content-padding-x);
+  max-width: var(--content-max-width);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
+/* ============================================================
+   SPLASH (Loading / Erreur globale)
+   ============================================================ */
+.ws-splash {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bank-white);
+  z-index: 1000;
+}
+
+.ws-splash-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px;
+  text-align: center;
+
+  .ws-splash-logo {
+    height: 48px;
+    width: auto;
+    margin-bottom: 8px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--bank-ink-500);
+    font-weight: 500;
+  }
+
+  .mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    color: var(--bank-error);
+  }
+}
+
+.ws-splash--error p { color: var(--bank-error); }
+
+/* Override couleur du spinner Material */
+::ng-deep .ws-splash-inner .mat-mdc-progress-spinner circle {
+  stroke: var(--bank-navy-900) !important;
+}
+
+/* ============================================================
+   ROLE VARIANTS (commercial vs admin)
+   ============================================================ */
+.role-commercial {
+  --role-accent: var(--bank-navy-700);
+}
+
+.role-admin {
+  --role-accent: var(--bank-navy-900);
+}
+
+/* ============================================================
+   COMMERCIAL USER — Accent JAUNE OR sur tous les éléments
+   clés : bouton notif, avatar, account btn, nav actif, drawer
+   ============================================================ */
+.role-commercial-user {
+  --role-account-accent:       var(--lc-gold);
+  --role-account-contrast:     var(--lc-navy);
+  --role-account-soft:         var(--lc-warn-soft);
+  --role-account-hover-border: rgba(255, 210, 36, 0.60);
+}
+
+/* Bouton notification (cloche) — jaune or */
+.role-commercial-user .topbar-action-btn {
+  background: var(--lc-gold) !important;
+  border-color: var(--lc-gold-hover) !important;
+  color: var(--lc-navy) !important;
+  box-shadow: 0 2px 8px rgba(255, 210, 36, 0.30);
+}
+.role-commercial-user .topbar-action-btn:hover {
+  background: var(--lc-gold-hover) !important;
+  border-color: var(--lc-gold-hover) !important;
+}
+
+/* Avatar topbar (initiales du compte) — jaune or */
+.role-commercial-user .topbar-avatar {
+  background: var(--lc-gold) !important;
+  color: var(--lc-navy) !important;
+}
+
+/* Bouton compte — bordure gauche jaune */
+.role-commercial-user .topbar-account-btn {
+  border-left-color: var(--lc-gold) !important;
+}
+.role-commercial-user .topbar-account-btn:hover {
+  background: var(--lc-warn-soft) !important;
+  border-left-color: var(--lc-gold-hover) !important;
+}
+
+/* Avatar dropdown compte — jaune or */
+.role-commercial-user .menu-account-avatar {
+  background: var(--lc-gold) !important;
+  color: var(--lc-navy) !important;
+}
+
+/* Carte compte dans le drawer — bordure gauche jaune */
+.role-commercial-user .drawer-account {
+  border-left-color: var(--lc-gold) !important;
+  background: var(--lc-warn-soft) !important;
+}
+.role-commercial-user .drawer-account-avatar {
+  background: var(--lc-gold) !important;
+  color: var(--lc-navy) !important;
+}
+
+/* Avatar mini (drawer réduit) */
+.role-commercial-user .drawer-account-mini .drawer-account-avatar {
+  background: var(--lc-gold) !important;
+  color: var(--lc-navy) !important;
+}
+
+/* Nav item actif — jaune or */
+.role-commercial-user .drawer-nav-item.is-active,
+.role-commercial-user .drawer-nav-item.is-active:hover {
+  background: var(--lc-gold) !important;
+  border-color: var(--lc-gold-hover) !important;
+  color: var(--lc-navy) !important;
+  box-shadow: 0 1px 4px rgba(255, 210, 36, 0.25) !important;
+}
+.role-commercial-user .drawer-nav-item.is-active .nav-item-icon,
+.role-commercial-user .drawer-nav-item.is-active .nav-item-label,
+.role-commercial-user .drawer-nav-item.is-active .nav-item-badge {
+  color: var(--lc-navy) !important;
+}
+.role-commercial-user .drawer-nav-item.is-active::before {
+  background: var(--lc-navy) !important;
+}
+
+/* Menu panel tête compte — accent jaune */
+.role-commercial-user .menu-panel-head--account {
+  border-left-color: var(--lc-gold) !important;
+}
+
+/* Badge de notification rouge reste rouge */
+.role-commercial-user .topbar-action-label {
+  font-weight: 700;
+  color: var(--lc-navy);
+}
+
+.role-supervisor {
+  --role-account-accent: var(--bank-navy-600);
+  --role-account-contrast: var(--bank-white);
+  --role-account-soft: var(--bank-navy-50);
+  --role-account-hover-border: rgba(36, 81, 160, 0.5);
+}
+
+.role-backoffice {
+  --role-account-accent: #c14678;
+  --role-account-contrast: var(--bank-white);
+  --role-account-soft: #fff7fa;
+  --role-account-hover-border: rgba(193, 70, 120, 0.45);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+/* ----- Tablette (≤ 1024px) ----- */
+@media (max-width: 1024px) {
+  :root {
+    --content-padding-x: 14px;
+    --content-padding-y: 14px;
+  }
+
+  .topbar-account-info {
+    display: none;
+  }
+
+  .topbar-account-caret {
+    display: none;
+  }
+
+  .topbar-account-btn {
+    padding: 0 6px;
+  }
+
+  .ws-metrics {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+  }
+
+  .metric-card {
+    padding: 14px 16px;
+
+    .metric-value { font-size: 22px; }
+  }
+}
+
+/* ----- Mobile (≤ 768px) ----- */
+@media (max-width: 768px) {
+  :root {
+    --topbar-height: 60px;
+    --content-padding-x: 12px;
+    --content-padding-y: 12px;
+  }
+
+  .desktop-only { display: none !important; }
+  .mobile-only  { display: inline-flex !important; }
+
+  .ws-topbar {
+    padding: 0 16px;
+    gap: 8px;
+  }
+
+  .topbar-left {
+    gap: 10px;
+  }
+
+  .topbar-logo {
+    height: 36px;
+    padding-right: 10px;
+  }
+
+  .topbar-logo-img {
+    height: 30px;
+  }
+
+  .topbar-breadcrumb {
+    gap: 10px;
+  }
+
+  .topbar-breadcrumb-root {
+    display: none;
+  }
+
+  .topbar-breadcrumb-page {
+    font-size: 14px;
+  }
+
+  .topbar-breadcrumb-subtitle {
+    display: none;
+  }
+
+  .topbar-right {
+    gap: 6px;
+  }
+
+  .topbar-action-btn {
+    height: 36px;
+    min-width: 36px;
+    padding: 0 8px;
+  }
+
+  .topbar-divider {
+    display: none;
+  }
+
+  .topbar-account-btn {
+    height: 36px;
+    padding: 0 4px;
+  }
+
+  .topbar-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+
+  .ws-metrics {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 16px 16px 0;
+  }
+
+  .metric-card {
+    padding: 12px 14px;
+
+    .metric-label { font-size: 10px; }
+    .metric-value { font-size: 20px; }
+    .metric-helper { font-size: 11px; }
+  }
+
+  .ws-alert {
+    margin: 12px 16px 0;
+    padding: 10px 12px;
+    font-size: 12.5px;
+  }
+
+  ::ng-deep .ws-menu-panel.mat-mdc-menu-panel {
+    min-width: 280px !important;
+    max-width: calc(100vw - 32px) !important;
+  }
+}
+
+/* ----- Très petit mobile (≤ 480px) ----- */
+@media (max-width: 480px) {
+  .ws-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar-logo {
+    padding-right: 8px;
+  }
+
+  .topbar-logo-img {
+    height: 26px;
+  }
+
+  .topbar-breadcrumb-page {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* ============================================================
+   ACCESSIBILITÉ — Focus visible
+   ============================================================ */
+.drawer-nav-item:focus-visible,
+.topbar-action-btn:focus-visible,
+.topbar-account-btn:focus-visible,
+.topbar-menu-btn:focus-visible,
+.drawer-collapse-btn:focus-visible {
+  outline: 2px solid var(--bank-sky);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   PRINT
+   ============================================================ */
+@media print {
+  .ws-drawer,
+  .ws-topbar,
+  .ws-metrics,
+  .ws-alert {
+    display: none !important;
+  }
+
+  .ws-page {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+}

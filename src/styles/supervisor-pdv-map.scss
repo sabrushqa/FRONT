@@ -1,0 +1,297 @@
+/* ============================================================
+   SUPERVISOR — Carte des points de vente
+   Extends supervisor-geo-map.scss (KPI grid, map card, legend).
+   ============================================================ */
+
+/* Two-column layout: a narrow side panel (KPIs + filters) next to the map,
+   so everything fits on one screen instead of stacking three full-width
+   sections and forcing a scroll. */
+.pdv-map-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+@media (max-width: 980px) {
+  .pdv-map-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.pdv-map-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.pdv-map-map-col {
+  min-width: 0;
+}
+
+.pdv-map-side .geo-kpi-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+.pdv-map-side .geo-kpi-card {
+  padding: 10px 14px;
+
+  strong {
+    font-size: 20px;
+  }
+}
+
+.pdv-map-page {
+  gap: 12px;
+
+  &.geo-map-page {
+    padding-bottom: 16px;
+  }
+
+  .geo-map-card {
+    padding: 12px 14px;
+  }
+
+  .geo-map-head {
+    margin-bottom: 6px;
+  }
+
+  .geo-map-leaflet {
+    height: min(600px, 74vh);
+  }
+
+  .geo-map-legend {
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+}
+
+.pdv-map-store-icon {
+  background: transparent;
+  border: none;
+}
+
+.pdv-map-store-icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(13, 43, 69, 0.35);
+
+  .material-icons {
+    transform: rotate(45deg);
+    font-size: 16px;
+    color: #ffffff;
+  }
+}
+
+.pdv-map-filters {
+  background: var(--white, #fff);
+  border: 1px solid var(--border, #cddfe9);
+  border-radius: var(--radius, 6px);
+  box-shadow: 0 1px 3px rgba(13, 43, 69, 0.08);
+  overflow: hidden;
+}
+
+.pdv-map-filters-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border, #cddfe9);
+}
+
+.pdv-map-filters-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--navy-900, #0d2b45);
+
+  .material-icons {
+    font-size: 16px;
+    color: var(--text-muted, #6a91aa);
+  }
+}
+
+.pdv-map-filters-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(0, 168, 204, 0.12);
+  color: var(--sky-600, #2451a0);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pdv-map-filters-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  color: var(--text-secondary, #3a6480);
+  cursor: pointer;
+
+  .material-icons {
+    font-size: 14px;
+  }
+
+  &:hover {
+    color: var(--navy-900, #0d2b45);
+  }
+}
+
+.pdv-map-filters-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px 14px;
+}
+
+.pdv-map-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  span {
+    font-family: var(--font-head, Arial, sans-serif);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted, #6a91aa);
+  }
+
+  select {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid var(--border, #cddfe9);
+    border-radius: 6px;
+    font-size: 12.5px;
+    color: var(--navy-900, #0d2b45);
+    background: var(--white, #fff);
+  }
+}
+
+.pdv-map-pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.pdv-map-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 11px;
+  border: 1px solid var(--border, #cddfe9);
+  border-radius: 999px;
+  background: var(--white, #fff);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary, #3a6480);
+  cursor: pointer;
+  transition: all 0.14s;
+
+  .material-icons {
+    display: none;
+    font-size: 13px;
+  }
+
+  &:hover {
+    border-color: var(--sky-400, #3a6dc4);
+  }
+
+  &.is-active {
+    background: var(--navy-900, #0d2b45);
+    border-color: var(--navy-900, #0d2b45);
+    color: var(--white, #fff);
+
+    .material-icons {
+      display: inline-block;
+    }
+  }
+}
+
+.pdv-map-filters-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-top: 1px solid var(--border, #cddfe9);
+  background: var(--bg-subtle, #f7fbfd);
+  font-size: 11.5px;
+  color: var(--text-secondary, #3a6480);
+
+  .material-icons {
+    font-size: 14px;
+    color: var(--text-muted, #6a91aa);
+  }
+
+  button {
+    margin-left: auto;
+    padding: 5px 12px;
+    border: 1px solid var(--border, #cddfe9);
+    border-radius: 6px;
+    background: var(--white, #fff);
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--navy-900, #0d2b45);
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--sky-400, #3a6dc4);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+  }
+}
+
+.pdv-map-regeocode-feedback {
+  margin: -8px 0 12px;
+  font-size: 12.5px;
+  color: var(--navy-700, #1f4e6e);
+}
+
+.pdv-map-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 220px;
+  font-size: 12.5px;
+
+  strong {
+    font-size: 13.5px;
+    color: var(--navy-900, #0d2b45);
+  }
+
+  span {
+    color: var(--text-secondary, #3a6480);
+  }
+}
+
+.pdv-map-popup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+
+  .btn-secondary {
+    padding: 5px 10px;
+    font-size: 11.5px;
+  }
+}

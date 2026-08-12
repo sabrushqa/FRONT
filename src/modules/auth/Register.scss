@@ -1,0 +1,681 @@
+.auth-panel.register-angular-panel {
+  width: min(100%, 980px);
+  min-width: 0;
+  height: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  justify-content: flex-start;
+}
+
+.register-angular-panel .progress-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.register-angular-panel .progress-meta {
+  min-width: 88px;
+  text-align: right;
+}
+
+.register-angular-panel .progress-meta span {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6f98ae;
+}
+
+.register-angular-panel .progress-meta strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 17px;
+  color: #0a3049;
+}
+
+.register-angular-panel .progress-track {
+  position: relative;
+  height: 9px;
+  margin-bottom: 14px;
+  border-radius: 999px;
+  background: #e4f4fb;
+  overflow: hidden;
+}
+
+.register-angular-panel .progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #74d8f8, #00a8cc, #ff8a00, #ff4fa3);
+  transition: width 0.28s ease;
+}
+
+.register-angular-panel .submit-feedback {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.register-angular-panel .submit-feedback-success {
+  border: 1px solid rgba(0, 168, 204, 0.18);
+  background: rgba(229, 250, 255, 0.95);
+  color: #0a6f87;
+}
+
+.register-angular-panel .submit-feedback-error {
+  border: 1px solid rgba(255, 79, 163, 0.18);
+  background: rgba(255, 241, 247, 0.98);
+  color: #b33669;
+}
+
+.register-angular-panel .stepper {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.register-angular-panel .step-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #d7eaf3;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f3fbff, #fbfdff);
+  text-align: left;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.register-angular-panel .step-chip:not(:disabled) {
+  cursor: pointer;
+}
+
+.register-angular-panel .step-chip:disabled {
+  opacity: 0.55;
+}
+
+.register-angular-panel .step-chip.is-active {
+  border-color: rgba(0, 168, 204, 0.3);
+  background: linear-gradient(180deg, rgba(233, 248, 255, 0.98), rgba(255, 244, 249, 0.94));
+  transform: translateY(-1px);
+}
+
+.register-angular-panel .step-chip.is-complete {
+  border-color: rgba(0, 168, 204, 0.36);
+  background: rgba(232, 248, 255, 0.98);
+}
+
+.register-angular-panel .step-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #0a3049;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 6px 12px rgba(10, 48, 73, 0.08);
+}
+
+.register-angular-panel .step-chip.is-active .step-index,
+.register-angular-panel .step-chip.is-complete .step-index {
+  background: linear-gradient(135deg, #74d8f8, #00a8cc, #ff4fa3);
+  color: #ffffff;
+}
+
+.register-angular-panel .step-text {
+  font-size: 12px;
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+  color: #5f7b8c;
+}
+
+.register-angular-panel .step-panel {
+  animation: registerFadeStep 0.24s ease;
+}
+
+.register-angular-panel .step-heading {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e0eef5;
+}
+
+.register-angular-panel .step-kicker {
+  display: inline-flex;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #00a8cc;
+}
+
+.register-angular-panel .step-heading h2 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  line-height: 1.2;
+  color: #0a3049;
+}
+
+.register-angular-panel .step-heading p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #6d93aa;
+}
+
+.register-angular-panel .badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.register-angular-panel .type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 9px 12px;
+  border: 1px solid #d7eaf3;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #f3fbff, #fff6fb);
+}
+
+.register-angular-panel .type-badge span {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6f98ae;
+}
+
+.register-angular-panel .type-badge strong {
+  font-size: 13px;
+  color: #0a3049;
+}
+
+.register-angular-panel .fields-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.register-angular-panel .fields-grid-final {
+  margin-bottom: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.register-angular-panel .field label,
+.register-angular-panel label.field > span {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #5c88a4;
+  text-transform: uppercase;
+}
+
+.register-angular-panel .required-mark {
+  margin-left: 3px;
+  color: #ff4fa3;
+}
+
+.register-angular-panel .field-error {
+  margin: 7px 0 0;
+  color: #b33669;
+  font-size: 11px;
+}
+
+.register-angular-panel .input-wrap {
+  position: relative;
+  min-width: 0;
+}
+
+.register-angular-panel .ico {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  width: 17px;
+  height: 17px;
+  color: #79aac0;
+  transform: translateY(-50%);
+}
+
+.register-angular-panel .input-wrap input,
+.register-angular-panel .input-wrap select {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 42px 12px 42px;
+  border-radius: 8px;
+  border: 1.5px solid #d5e8f2;
+  background: linear-gradient(180deg, #f4fbff, #fbfeff);
+  color: #16354c;
+  font: inherit;
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.register-angular-panel .input-wrap select {
+  appearance: none;
+  cursor: pointer;
+}
+
+.register-angular-panel .input-wrap input:focus,
+.register-angular-panel .input-wrap select:focus {
+  outline: none;
+  border-color: #59c9ef;
+  background: #ffffff;
+  box-shadow:
+    0 0 0 3px rgba(116, 216, 248, 0.18),
+    0 0 0 5px rgba(0, 168, 204, 0.08);
+}
+
+.register-angular-panel .input-wrap input[readonly] {
+  cursor: default;
+  background: linear-gradient(180deg, #eef6fb, #f7fbfe);
+  color: #5a7487;
+}
+
+.register-angular-panel .input-wrap.is-invalid input,
+.register-angular-panel .input-wrap.is-invalid select {
+  border-color: rgba(255, 79, 163, 0.75);
+}
+
+.register-angular-panel .field-note {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #6d93aa;
+}
+
+.register-angular-panel .input-wrap-select::after {
+  content: '';
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid #6f98ae;
+  border-bottom: 2px solid #6f98ae;
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+.register-angular-panel .pdv-list {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.register-angular-panel .pdv-item {
+  padding: 16px;
+  border: 1px solid #d7eaf3;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #f7fcff, #fffdfd);
+}
+
+.register-angular-panel .pdv-title {
+  margin-bottom: 14px;
+}
+
+.register-angular-panel .pdv-title span {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: rgba(0, 168, 204, 0.09);
+  color: #0a6f87;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.register-angular-panel .pdv-item-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.register-angular-panel .pdv-fields-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.register-angular-panel .pdv-location-field {
+  margin-top: 0;
+  position: sticky;
+  top: 16px;
+}
+
+.register-angular-panel .pdv-location-field .pdv-location-picker-map {
+  height: 480px;
+}
+
+.register-angular-panel .pdv-location-field label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #5c88a4;
+  text-transform: uppercase;
+}
+
+.register-angular-panel .docs-section {
+  display: grid;
+  gap: 14px;
+}
+
+.register-angular-panel .docs-head h3 {
+  margin: 0 0 4px;
+  font-size: 17px;
+  color: #0a3049;
+}
+
+.register-angular-panel .docs-head p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #6d93aa;
+}
+
+.register-angular-panel .docs-grid-simple {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.register-angular-panel .doc-card {
+  position: relative;
+  display: grid;
+  gap: 9px;
+  padding: 16px;
+  border: 1px solid #d7eaf3;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #f7fcff, #fffdfd);
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Variante utilisee dans la grille .docs-grid-simple (2 colonnes, plus
+   spacieuse) : les cartes profitent de la largeur disponible pour la
+   legende, le statut de validation et le message d'erreur eventuel. */
+.register-angular-panel .doc-card-simple {
+  padding: 18px;
+  gap: 10px;
+}
+
+.register-angular-panel .doc-card:hover {
+  border-color: rgba(0, 168, 204, 0.28);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(10, 48, 73, 0.06);
+}
+
+.register-angular-panel .doc-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.register-angular-panel .doc-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0a3049;
+}
+
+.register-angular-panel .doc-flag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 18px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(255, 79, 163, 0.08);
+  color: #b33669;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.register-angular-panel .doc-caption,
+.register-angular-panel .doc-validation-note {
+  font-size: 12px;
+  line-height: 1.35;
+  color: #6d93aa;
+}
+
+.register-angular-panel .doc-status {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.register-angular-panel .doc-status.is-validating { background: rgba(0, 168, 204, 0.1); color: #0a6f87; }
+.register-angular-panel .doc-status.is-valid { background: rgba(29, 171, 104, 0.12); color: #16754c; }
+.register-angular-panel .doc-status.is-invalid { background: rgba(255, 79, 163, 0.12); color: #b33669; }
+.register-angular-panel .doc-status.is-skipped { background: rgba(111, 152, 174, 0.12); color: #58788d; }
+
+.register-angular-panel .doc-file {
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px dashed #cfe2ee;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 12px;
+  line-height: 1.35;
+  color: #16354c;
+  overflow-wrap: anywhere;
+}
+
+.register-angular-panel .doc-file.is-empty {
+  color: #7f9ab0;
+}
+
+.register-angular-panel .doc-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #00a8cc, #58d3f4, #ff4fa3);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.register-angular-panel .doc-input {
+  display: none;
+}
+
+.register-angular-panel .terms-row {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 16px 0 8px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: #64869d;
+}
+
+.register-angular-panel .terms-row input {
+  margin-top: 2px;
+  accent-color: #35c6f4;
+}
+
+.register-angular-panel .summary-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #00a8cc;
+}
+
+.register-angular-panel .step-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.register-angular-panel .ghost-btn,
+.register-angular-panel .next-btn,
+.register-angular-panel .login-btn {
+  min-height: 46px;
+  border: none;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease, opacity 0.2s ease;
+}
+
+.register-angular-panel .ghost-btn {
+  min-width: 112px;
+  flex: 0 0 auto;
+  padding: 0 16px;
+  background: linear-gradient(180deg, #e9f7fd, #f3fbff);
+  color: #0a3049;
+}
+
+.register-angular-panel .next-btn,
+.register-angular-panel .login-btn {
+  flex: 1;
+  padding: 0 18px;
+  background: linear-gradient(90deg, #00a8cc, #58d3f4, #ff4fa3, #ff8a00);
+  box-shadow: 0 12px 26px rgba(0, 168, 204, 0.18);
+  color: #ffffff;
+}
+
+.register-angular-panel .ghost-btn:hover,
+.register-angular-panel .next-btn:hover,
+.register-angular-panel .login-btn:hover {
+  transform: translateY(-1px);
+}
+
+.register-angular-panel .next-btn:disabled,
+.register-angular-panel .login-btn:disabled,
+.register-angular-panel .step-chip:disabled,
+.register-angular-panel .ghost-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+.register-angular-panel .alt-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 13px;
+  color: #7294a8;
+}
+
+.register-angular-panel .inline-link {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #00a8cc;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+@keyframes registerFadeStep {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 1280px) {
+  .register-angular-panel .fields-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .register-angular-panel .pdv-fields-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 1100px) {
+  .register-angular-panel .fields-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .register-angular-panel .pdv-fields-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .register-angular-panel .progress-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .register-angular-panel .progress-meta {
+    text-align: left;
+  }
+
+  .register-angular-panel .fields-grid,
+  .register-angular-panel .fields-grid-final,
+  .register-angular-panel .pdv-fields-grid,
+  .register-angular-panel .docs-grid-simple {
+    grid-template-columns: 1fr;
+  }
+
+  .register-angular-panel .pdv-item-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .register-angular-panel .pdv-location-field {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .register-angular-panel .badge-row,
+  .register-angular-panel .step-actions,
+  .register-angular-panel .alt-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .register-angular-panel .type-badge {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .register-angular-panel .ghost-btn,
+  .register-angular-panel .next-btn,
+  .register-angular-panel .login-btn {
+    width: 100%;
+  }
+}

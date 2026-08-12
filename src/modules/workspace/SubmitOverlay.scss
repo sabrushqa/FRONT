@@ -1,0 +1,75 @@
+.submit-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(4px);
+  animation: overlay-in 180ms ease both;
+}
+
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.submit-overlay__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.submit-overlay__logo {
+  height: 52px;
+  width: auto;
+}
+
+/* ── BARRE DE PROGRESSION ───────────────────────────────── */
+.submit-overlay__bar {
+  width: 220px;
+  height: 4px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.submit-overlay__bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  animation: bar-slide 1.4s ease-in-out infinite;
+}
+
+@keyframes bar-slide {
+  0%   { transform: translateX(-100%); width: 60%; }
+  50%  { transform: translateX(80%);  width: 60%; }
+  100% { transform: translateX(200%); width: 60%; }
+}
+
+/* ── VARIANTES COULEUR ──────────────────────────────────── */
+.submit-overlay--yellow .submit-overlay__bar-fill {
+  background: linear-gradient(90deg, #f8c526, #f59e0b);
+}
+
+.submit-overlay--pink .submit-overlay__bar-fill {
+  background: linear-gradient(90deg, #f472b6, #ec4899);
+}
+
+/* ── LABEL ──────────────────────────────────────────────── */
+.submit-overlay__label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  letter-spacing: 0.01em;
+}
+
+/* ── DARK MODE ──────────────────────────────────────────── */
+[data-theme='dark'] .submit-overlay {
+  background: rgba(15, 23, 42, 0.95);
+
+  .submit-overlay__bar { background: #334155; }
+  .submit-overlay__label { color: #94a3b8; }
+}

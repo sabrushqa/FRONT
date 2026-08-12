@@ -1,0 +1,52 @@
+.page-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Compact action buttons inside directory tables */
+.table-shell .data-table tbody td .btn-secondary,
+.table-shell .data-table tbody td .btn-primary {
+  padding: 6px 13px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   TABLEAU COMMERÇANTS — design dédié (portefeuille commerçants)
+   ============================================================ */
+.commercant-table-shell {
+  margin: 0 22px 22px;
+  border-radius: var(--sv-radius);
+  overflow: hidden;
+}
+
+.commercant-table {
+  min-width: 920px;
+}
+
+.affiliation-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.affiliation-tpe { background: rgba(23, 92, 211, 0.1); color: #175cd3; border-color: rgba(23, 92, 211, 0.2); }
+.affiliation-softpos { background: #e3f4ea; color: #0f7a44; border-color: rgba(15, 122, 68, 0.18); }
+.affiliation-qr-code { background: rgba(193, 70, 120, 0.1); color: #c14678; border-color: rgba(193, 70, 120, 0.22); }
+.affiliation-e-commerce { background: rgba(183, 110, 0, 0.12); color: #b76e00; border-color: rgba(183, 110, 0, 0.22); }
+.affiliation-encaissement-et-ecommerce { background: rgba(101, 63, 214, 0.1); color: #653fd6; border-color: rgba(101, 63, 214, 0.22); }
+.affiliation-none { background: #f2f6fa; color: var(--sv-muted); border-color: var(--sv-border); }
+
+@media (max-width: 760px) {
+  .commercant-table-shell {
+    margin: 0 14px 18px;
+  }
+}

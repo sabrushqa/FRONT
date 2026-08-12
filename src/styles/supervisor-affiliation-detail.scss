@@ -1,0 +1,488 @@
+/* Supervisor Affiliation Detail — uses same styles as dossier-detail */
+@use './dossier-detail' as *;
+
+/* ============================================================
+   STYLE MODERNE — palette unifiée (bleu indigo), fini le
+   dégradé or/marine/rose alterné par carte.
+   ============================================================ */
+
+.supervisor-affiliation-detail-page {
+  --da-primary: #2563eb;
+  --da-primary-soft: #eff6ff;
+  --da-border: #e5e7eb;
+  --da-text: #0f172a;
+  --da-muted: #64748b;
+  --da-surface: #ffffff;
+  --da-surface-alt: #f8fafc;
+  --da-radius: 12px;
+}
+
+.supervisor-affiliation-detail-page .info-card {
+  border-color: var(--da-border) !important;
+  border-radius: var(--da-radius) !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+.supervisor-affiliation-detail-page .info-card:hover {
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+}
+
+.supervisor-affiliation-detail-page .info-card h3 {
+  color: var(--da-text) !important;
+  background: var(--da-surface-alt) !important;
+  border-bottom: 1px solid var(--da-border) !important;
+  padding: 8px 14px !important;
+  font-size: 10.5px !important;
+}
+
+.supervisor-affiliation-detail-page .info-card h3::before {
+  background: var(--da-primary) !important;
+}
+
+/* Header dossier superviseur */
+.supervisor-affiliation-detail-page .dossier-summary-card {
+  border: 1px solid rgba(37, 99, 235, 0.16) !important;
+  border-radius: 10px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.96)),
+    radial-gradient(circle at 12% 0%, rgba(37, 99, 235, 0.11), transparent 34%) !important;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08) !important;
+}
+
+.supervisor-affiliation-detail-page .page-head {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: minmax(260px, 1fr) auto !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 13px 16px 11px !important;
+  border-bottom: 1px solid rgba(203, 213, 225, 0.78) !important;
+  border-radius: 10px 10px 0 0 !important;
+  background:
+    linear-gradient(135deg, #0f172a 0%, #17345b 58%, #1d4ed8 100%) !important;
+  overflow: hidden;
+}
+
+.supervisor-affiliation-detail-page .page-head::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08), transparent 28%),
+    radial-gradient(circle at 92% 8%, rgba(96, 165, 250, 0.32), transparent 30%);
+  pointer-events: none;
+}
+
+.supervisor-affiliation-detail-page .dossier-hero-copy,
+.supervisor-affiliation-detail-page .header-actions {
+  position: relative;
+  z-index: 1;
+}
+
+.supervisor-affiliation-detail-page .dossier-hero-copy {
+  min-width: 0;
+}
+
+.supervisor-affiliation-detail-page .page-kicker {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  color: #bfdbfe !important;
+  letter-spacing: 0.16em !important;
+}
+
+.supervisor-affiliation-detail-page .page-kicker::before {
+  content: '';
+  width: 14px;
+  height: 2px;
+  border-radius: 999px;
+  background: #facc15;
+}
+
+.supervisor-affiliation-detail-page .page-head h2 {
+  max-width: 780px;
+  margin-top: 5px !important;
+  color: #ffffff !important;
+  font-size: 20px !important;
+  line-height: 1.2 !important;
+  overflow-wrap: anywhere;
+}
+
+.supervisor-affiliation-detail-page .dossier-hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.supervisor-affiliation-detail-page .dossier-hero-tags span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 5px 9px;
+  border: 1px solid rgba(191, 219, 254, 0.32);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #dbeafe;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.supervisor-affiliation-detail-page .header-actions {
+  display: grid !important;
+  grid-template-columns: repeat(3, max-content) !important;
+  align-items: center !important;
+  justify-content: end !important;
+  gap: 8px !important;
+  width: auto !important;
+}
+
+.supervisor-affiliation-detail-page .header-actions button {
+  width: auto !important;
+  min-height: 34px;
+  flex: 0 0 auto !important;
+  border-radius: 8px !important;
+  white-space: nowrap;
+}
+
+.supervisor-affiliation-detail-page .page-head .btn-secondary {
+  border-color: rgba(255, 255, 255, 0.72) !important;
+  background: rgba(255, 255, 255, 0.94) !important;
+  color: #16324f !important;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18) !important;
+}
+
+.supervisor-affiliation-detail-page .page-head .btn-secondary:hover:not(:disabled) {
+  border-color: #ffffff !important;
+  background: #ffffff !important;
+  transform: translateY(-1px);
+}
+
+.supervisor-affiliation-detail-page .page-head .btn-primary {
+  min-height: 34px;
+  border-radius: 8px !important;
+  background: #facc15 !important;
+  color: #172033 !important;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18) !important;
+}
+
+/* ============================================================
+   ONGLETS DE SECTION
+   ============================================================ */
+
+.supervisor-affiliation-detail-page .detail-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 16px 8px;
+  border-bottom: 1px solid var(--da-border);
+}
+
+.supervisor-affiliation-detail-page .detail-tab-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 9px 14px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--da-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  border-radius: 8px 8px 0 0;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.supervisor-affiliation-detail-page .detail-tab-btn:hover {
+  color: var(--da-primary);
+  background: var(--da-primary-soft);
+}
+
+.supervisor-affiliation-detail-page .detail-tab-btn.is-active {
+  color: var(--da-primary);
+  border-bottom-color: var(--da-primary);
+  background: var(--da-primary-soft);
+}
+
+/* ============================================================
+   GRILLE DE CARTES — compacte, sans étirement des cartes courtes
+   ============================================================ */
+
+.supervisor-affiliation-detail-page .detail-grid {
+  gap: 8px !important;
+  padding: 8px 16px 16px !important;
+  align-items: start !important;
+  grid-auto-flow: row dense !important;
+}
+
+.supervisor-affiliation-detail-page .info-card {
+  align-self: start !important;
+  height: auto !important;
+}
+
+.supervisor-affiliation-detail-page .info-list {
+  flex-grow: 0 !important;
+}
+
+.supervisor-affiliation-detail-page .info-list > span {
+  min-height: 24px !important;
+  padding: 4px 12px !important;
+  font-size: 11.5px !important;
+  line-height: 1.3 !important;
+  border-bottom-color: var(--da-border) !important;
+}
+
+.supervisor-affiliation-detail-page .info-list > span:nth-child(even) {
+  background: var(--da-surface-alt) !important;
+}
+
+.supervisor-affiliation-detail-page .info-list > span:hover {
+  background: var(--da-primary-soft) !important;
+}
+
+.supervisor-affiliation-detail-page .info-list > span > span {
+  overflow-wrap: anywhere;
+}
+
+.supervisor-affiliation-detail-page .info-list > span strong {
+  color: var(--da-muted) !important;
+}
+
+.supervisor-affiliation-detail-page .info-card .form-actions {
+  padding: 7px 12px !important;
+  gap: 6px !important;
+  background: var(--da-surface-alt) !important;
+  border-top-color: var(--da-border) !important;
+}
+
+.supervisor-affiliation-detail-page .new-pdv-summary {
+  margin: 0 18px 12px !important;
+  padding: 12px !important;
+  gap: 10px !important;
+  border-color: var(--da-border) !important;
+  border-left-color: var(--da-primary) !important;
+  background: var(--da-primary-soft) !important;
+}
+
+.supervisor-affiliation-detail-page .page-alert {
+  margin: 8px 16px 0 !important;
+}
+
+/* ============================================================
+   STATUS STRIP — puces distinctes label/valeur
+   ============================================================ */
+
+.supervisor-affiliation-detail-page .status-strip {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center !important;
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 16px !important;
+  background: #ffffff !important;
+  border-top: 1px solid rgba(226, 232, 240, 0.82) !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.82) !important;
+}
+
+.supervisor-affiliation-detail-page .status-strip .status-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-right: 12px;
+  padding: 0 18px 0 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.supervisor-affiliation-detail-page .status-strip .status-chip::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.supervisor-affiliation-detail-page .status-strip .status-chip::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 11px;
+  bottom: 11px;
+  width: 1px;
+  background: #dbe4ef;
+}
+
+.supervisor-affiliation-detail-page .status-strip-meta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 14px;
+  color: var(--da-text);
+
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 13px;
+    bottom: 13px;
+    width: 1px;
+    background: #e2e8f0;
+  }
+
+  strong {
+    color: var(--da-muted);
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  strong::after {
+    content: ':';
+  }
+
+  span {
+    min-width: 0;
+    color: #1f2937;
+    font-size: 12.5px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+}
+
+.supervisor-affiliation-detail-page .status-strip-meta-warn {
+  flex-basis: 100%;
+  min-height: 38px;
+  margin: 0 -16px;
+  padding: 0 16px;
+  background: #fff7ed;
+  border-top: 1px solid #fed7aa;
+
+  strong,
+  span {
+    color: #c2410c;
+  }
+}
+
+@media (max-width: 1180px) {
+  .supervisor-affiliation-detail-page .page-head {
+    grid-template-columns: 1fr !important;
+    align-items: start !important;
+  }
+
+  .supervisor-affiliation-detail-page .header-actions {
+    justify-content: start !important;
+  }
+
+  .supervisor-affiliation-detail-page .status-strip {
+    padding: 8px 16px !important;
+    gap: 6px !important;
+  }
+
+  .supervisor-affiliation-detail-page .status-strip .status-chip {
+    min-height: 34px;
+    margin-right: 0;
+    padding-right: 12px;
+  }
+
+  .supervisor-affiliation-detail-page .status-strip-meta {
+    min-height: 34px;
+    padding: 0 10px;
+  }
+}
+
+@media (max-width: 760px) {
+  .supervisor-affiliation-detail-page .page-head {
+    padding: 12px !important;
+  }
+
+  .supervisor-affiliation-detail-page .page-head h2 {
+    font-size: 18px !important;
+  }
+
+  .supervisor-affiliation-detail-page .header-actions,
+  .supervisor-affiliation-detail-page .status-strip {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+
+  .supervisor-affiliation-detail-page .header-actions button {
+    width: 100% !important;
+    white-space: normal;
+  }
+
+  .supervisor-affiliation-detail-page .status-strip {
+    padding: 9px 12px !important;
+  }
+
+  .supervisor-affiliation-detail-page .status-strip .status-chip,
+  .supervisor-affiliation-detail-page .status-strip-meta {
+    width: 100%;
+    min-height: 32px;
+    padding: 0;
+  }
+
+  .supervisor-affiliation-detail-page .status-strip .status-chip::after,
+  .supervisor-affiliation-detail-page .status-strip-meta::after {
+    display: none;
+  }
+
+  .supervisor-affiliation-detail-page .status-strip-meta-warn {
+    margin: 4px 0 0;
+    padding: 6px 8px;
+    border-radius: 8px;
+  }
+}
+
+/* ============================================================
+   MODE SOMBRE
+   ============================================================ */
+
+html[data-theme='dark'] .supervisor-affiliation-detail-page {
+  --da-primary: #60a5fa;
+  --da-primary-soft: rgba(96, 165, 250, 0.12);
+  --da-border: #2a2f3d;
+  --da-text: #e8ecf3;
+  --da-muted: #9aa5b8;
+  --da-surface: #1a1e29;
+  --da-surface-alt: #12151d;
+}
+
+html[data-theme='dark'] .supervisor-affiliation-detail-page .info-card {
+  background: var(--da-surface) !important;
+}
+
+html[data-theme='dark'] .supervisor-affiliation-detail-page .info-list > span {
+  color: var(--da-text) !important;
+}
+
+html[data-theme='dark'] .supervisor-affiliation-detail-page .dossier-summary-card {
+  border-color: #2a2f3d !important;
+  background: #151923 !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24) !important;
+}
+
+html[data-theme='dark'] .supervisor-affiliation-detail-page .status-strip {
+  background: #12151d !important;
+}
+
+html[data-theme='dark'] .supervisor-affiliation-detail-page .status-strip-meta {
+  border-color: #2a2f3d;
+  background: #1a1e29;
+}
+
+html[data-theme='dark'] .supervisor-affiliation-detail-page .status-strip-meta span {
+  color: #e8ecf3;
+}

@@ -1,0 +1,27 @@
+/* Sub-commercants */
+.sm-list { display:flex; flex-direction:column; gap:12px; }
+.sm-card { background:#fff; border:1px solid #E2E8F0; border-left:3px solid #F97316; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(15,27,45,.06); }
+.sm-card-head { display:flex; align-items:center; gap:12px; padding:14px 18px; flex-wrap:wrap; }
+.sm-avatar { width:42px; height:42px; border-radius:8px; background:#F97316; color:#ffffff; display:inline-flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; flex-shrink:0; }
+.sm-identity { flex:1; min-width:0; }
+.sm-identity strong { display:block; font-size:13.5px; font-weight:700; color:#1e40af; }
+.sm-identity span { display:block; font-size:12px; color:#64748B; margin-top:2px; overflow-wrap:anywhere; }
+.sm-badges { display:flex; flex-wrap:wrap; gap:6px; flex-shrink:0; }
+.sm-actions { display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px; padding:10px 18px 14px; background:#F8FAFC; border-top:1px solid #E2E8F0; }
+.sm-move-label { display:flex; flex-direction:column; gap:5px; flex:1; min-width:180px; }
+.sm-move-label span { font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:.06em; }
+.sm-move-label select { height:38px; padding:0 12px; border:1.5px solid #E2E8F0; border-radius:6px; background:#fff; color:#1E293B; font:inherit; font-size:13px; cursor:pointer; appearance:none; }
+.sm-move-label select:focus { outline:none; border-color:#F97316; }
+@media(max-width:600px){ .sm-actions{flex-direction:column; align-items:stretch;} .sm-move-label{min-width:0;} }
+/* ── Dark mode ── */
+[data-theme="dark"] .sm-card { background: #1E2130; border-color: rgba(255,255,255,.07); border-left-color: #FB923C; }
+[data-theme="dark"] .sm-identity strong { color: #F0F4FF; }
+[data-theme="dark"] .sm-identity span   { color: #4D5670; }
+[data-theme="dark"] .sm-actions { background: rgba(255,255,255,.03); border-top-color: rgba(255,255,255,.04); }
+[data-theme="dark"] .sm-move-label span { color: #4D5670; }
+[data-theme="dark"] .sm-move-label select { background: #1E2130; border-color: rgba(255,255,255,.09); color: #CBD5E1; &:focus { border-color: #FB923C; } }
+
+/* Espace sous-commerçant : accent bleu clair a la place de l'orange. */
+.role-merchant.role-submerchant .sm-card { border-left-color: #59bfe0; }
+.role-merchant.role-submerchant .sm-avatar { background: #59bfe0; }
+.role-merchant.role-submerchant .sm-move-label select:focus { border-color: #59bfe0; }

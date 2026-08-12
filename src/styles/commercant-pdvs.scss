@@ -1,0 +1,99 @@
+/* PDV Grid */
+.pdv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+}
+
+.pdv-card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(15,27,45,.06);
+  transition: box-shadow .16s;
+
+  &:hover { box-shadow: 0 4px 12px rgba(15,27,45,.10); }
+}
+
+.pdv-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #1a3590;
+  border-bottom: 2px solid #F97316;
+}
+
+.pdv-card-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+
+  strong { display: block; font-size: 13.5px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  span   { display: block; font-size: 11px; color: rgba(255,255,255,.55); margin-top: 1px; }
+}
+
+.pdv-avatar {
+  width: 36px; height: 36px; border-radius: 6px;
+  background: #F97316;
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  .material-icons { font-size: 20px; color: #ffffff; }
+}
+
+.pdv-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  padding: 4px 12px 8px;
+}
+
+.pdv-detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 4px;
+  border-bottom: 1px solid #EEF2F7;
+
+  &:nth-last-child(-n+2) { border-bottom: none; }
+  .material-icons { font-size: 15px; color: #F97316; margin-top: 2px; flex-shrink: 0; }
+  label { display: block; font-size: 9.5px; font-weight: 700; color: #4D5670; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 2px; }
+  strong { font-size: 12px; font-weight: 500; color: #1E293B; overflow-wrap: anywhere; }
+}
+
+.pdv-assignee {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  margin: 0 12px 12px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+
+  .material-icons { font-size: 22px; color: #F97316; flex-shrink: 0; }
+  &.is-empty .material-icons { color: #94A3B8; }
+  strong { display: block; font-size: 12.5px; font-weight: 600; color: #1e40af; }
+  span   { display: block; font-size: 11.5px; color: #4D5670; margin-top: 2px; }
+}
+
+@media (max-width: 600px) {
+  .pdv-grid { grid-template-columns: 1fr; }
+  .pdv-detail-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Dark mode ── */
+[data-theme="dark"] .pdv-card { background: #1E2130; border-color: rgba(255,255,255,.07); }
+[data-theme="dark"] .pdv-card-head { background: #1a3590; border-bottom-color: #FB923C; }
+[data-theme="dark"] .pdv-detail-item { border-bottom-color: rgba(255,255,255,.04); .material-icons { color: #FB923C; } label { color: #475569; } strong { color: #CBD5E1; } }
+[data-theme="dark"] .pdv-assignee { background: rgba(249,115,22,.06); border-color: rgba(249,115,22,.12); strong { color: #F0F4FF; } span { color: #4D5670; } }
+
+/* Espace sous-commerçant : accent bleu clair a la place de l'orange. */
+.role-merchant.role-submerchant .pdv-card-head { border-bottom-color: #59bfe0; }
+.role-merchant.role-submerchant .pdv-avatar { background: #59bfe0; }
+.role-merchant.role-submerchant .pdv-detail-item .material-icons { color: #59bfe0; }
+.role-merchant.role-submerchant .pdv-assignee .material-icons { color: #59bfe0; }

@@ -1,0 +1,364 @@
+/* Commercial Dossier Detail — structure onglets/grille compacte + thème
+   moderne dédié (jaune/or), distinct du thème indigo de la page superviseur. */
+
+.commercial-dossier-detail-page {
+  --cd-primary: #d4a017;
+  --cd-primary-soft: #fef9ec;
+  --cd-border: #e5e7eb;
+  --cd-text: #0f172a;
+  --cd-muted: #64748b;
+  --cd-surface: #ffffff;
+  --cd-surface-alt: #f8fafc;
+  --cd-radius: 12px;
+}
+
+/* ============================================================
+   HEADER — titre en pleine largeur au-dessus des actions,
+   pour que les boutons disposent de toute la largeur et
+   restent sur une seule ligne
+   ============================================================ */
+
+.commercial-dossier-detail-page .page-head {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 12px !important;
+  padding: 16px 24px !important;
+  background: linear-gradient(135deg, #0b1120 0%, #2e2508 55%, #d4a017 100%) !important;
+  border-bottom: 3px solid var(--cd-primary) !important;
+}
+
+.commercial-dossier-detail-page .page-head h2 {
+  color: #ffffff !important;
+}
+
+.commercial-dossier-detail-page .page-head .page-subtle {
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+.commercial-dossier-detail-page .page-kicker {
+  color: #ffe58a !important;
+}
+
+.commercial-dossier-detail-page .page-kicker::before {
+  background: #ffd224 !important;
+}
+
+.commercial-dossier-detail-page .header-actions {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  width: 100% !important;
+  overflow-x: auto !important;
+  padding-bottom: 2px;
+}
+
+.commercial-dossier-detail-page .header-actions button {
+  width: auto !important;
+  min-height: 34px;
+  flex: 0 0 auto !important;
+  white-space: nowrap;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+  gap: 5px !important;
+}
+
+.commercial-dossier-detail-page .header-actions .btn-secondary {
+  border-color: rgba(255, 255, 255, 0.7) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #0b1120 !important;
+}
+
+.commercial-dossier-detail-page .header-actions .btn-secondary:hover:not(:disabled) {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+}
+
+.commercial-dossier-detail-page .header-actions .btn-primary {
+  background: #ffd224 !important;
+  color: #2b2205 !important;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22) !important;
+}
+
+/* ============================================================
+   ONGLETS DE SECTION
+   ============================================================ */
+
+.commercial-dossier-detail-page .detail-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 24px 8px;
+  border-bottom: 1px solid var(--cd-border);
+}
+
+.commercial-dossier-detail-page .detail-tab-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 9px 14px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--cd-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  border-radius: 8px 8px 0 0;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.commercial-dossier-detail-page .detail-tab-btn:hover {
+  color: var(--cd-primary);
+  background: var(--cd-primary-soft);
+}
+
+.commercial-dossier-detail-page .detail-tab-btn.is-active {
+  color: var(--cd-primary);
+  border-bottom-color: var(--cd-primary);
+  background: var(--cd-primary-soft);
+}
+
+/* ============================================================
+   GRILLE DE CARTES — compacte, sans étirement des cartes courtes
+   ============================================================ */
+
+.commercial-dossier-detail-page .detail-grid {
+  gap: 8px !important;
+  padding: 8px 24px 20px !important;
+  align-items: start !important;
+  grid-auto-flow: row dense !important;
+}
+
+.commercial-dossier-detail-page .info-card {
+  align-self: start !important;
+  height: auto !important;
+  border-color: var(--cd-border) !important;
+  border-radius: var(--cd-radius) !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+.commercial-dossier-detail-page .info-card:hover {
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+}
+
+.commercial-dossier-detail-page .info-card h3 {
+  color: var(--cd-text) !important;
+  background: var(--cd-surface-alt) !important;
+  border-bottom: 1px solid var(--cd-border) !important;
+}
+
+.commercial-dossier-detail-page .info-card h3::before {
+  background: var(--cd-primary) !important;
+}
+
+.commercial-dossier-detail-page .info-list {
+  flex-grow: 0 !important;
+}
+
+.commercial-dossier-detail-page .info-list > span:nth-child(even) {
+  background: var(--cd-surface-alt) !important;
+}
+
+.commercial-dossier-detail-page .info-list > span:hover {
+  background: var(--cd-primary-soft) !important;
+}
+
+.commercial-dossier-detail-page .new-pdv-summary {
+  margin: 0 24px 12px !important;
+  border-left-color: var(--cd-primary) !important;
+  background: var(--cd-primary-soft) !important;
+}
+
+.commercial-dossier-detail-page .page-alert {
+  margin: 8px 24px 0 !important;
+}
+
+/* ============================================================
+   STATUS STRIP — puces distinctes label/valeur
+   ============================================================ */
+
+.commercial-dossier-detail-page .status-strip {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 12px 24px !important;
+  background: var(--cd-surface-alt) !important;
+  border: none !important;
+  border-top: 1px solid var(--cd-border) !important;
+  border-bottom: 1px solid var(--cd-border) !important;
+  border-radius: 0 !important;
+}
+
+.commercial-dossier-detail-page .status-strip .status-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 16px;
+  border: 1px solid var(--cd-primary);
+  border-radius: 999px;
+  background: var(--cd-primary-soft);
+  color: var(--cd-primary);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.commercial-dossier-detail-page .status-strip .status-chip::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.commercial-dossier-detail-page .status-strip .status-chip::after {
+  display: none;
+}
+
+.commercial-dossier-detail-page .status-strip-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 36px;
+  padding: 0 14px;
+  background: var(--cd-surface);
+  border: 1px solid var(--cd-border);
+  border-radius: 999px;
+  color: var(--cd-text);
+
+  &::after {
+    display: none;
+  }
+
+  strong {
+    display: inline-flex;
+    align-items: center;
+    color: var(--cd-muted);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  strong::after {
+    content: '';
+    display: inline-block;
+    width: 1px;
+    height: 12px;
+    margin-left: 8px;
+    background: var(--cd-border);
+  }
+
+  span {
+    min-width: 0;
+    color: var(--cd-text);
+    font-size: 12.5px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+}
+
+.commercial-dossier-detail-page .status-strip-meta-warn {
+  flex-basis: 100%;
+  min-height: 38px;
+  margin: 0 -24px;
+  padding: 0 24px;
+  background: #fff7ed;
+  border-top: 1px solid #fed7aa;
+
+  strong,
+  span {
+    color: #c2410c;
+  }
+}
+
+@media (max-width: 1180px) {
+  .commercial-dossier-detail-page .header-actions {
+    justify-content: flex-start !important;
+  }
+
+  .commercial-dossier-detail-page .status-strip {
+    padding: 8px 24px !important;
+    gap: 6px !important;
+  }
+
+  .commercial-dossier-detail-page .status-strip .status-chip {
+    min-height: 34px;
+    padding: 0 14px;
+  }
+
+  .commercial-dossier-detail-page .status-strip-meta {
+    min-height: 34px;
+    padding: 0 10px;
+  }
+}
+
+@media (max-width: 760px) {
+  .commercial-dossier-detail-page .status-strip {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+
+  .commercial-dossier-detail-page .status-strip {
+    padding: 9px 16px !important;
+  }
+
+  .commercial-dossier-detail-page .status-strip .status-chip,
+  .commercial-dossier-detail-page .status-strip-meta {
+    width: 100%;
+    min-height: 32px;
+    padding: 0 14px;
+  }
+
+  .commercial-dossier-detail-page .status-strip-meta-warn {
+    margin: 4px 0 0;
+    padding: 6px 8px;
+    border-radius: 8px;
+  }
+}
+
+/* ============================================================
+   MODE SOMBRE
+   ============================================================ */
+
+html[data-theme='dark'] .commercial-dossier-detail-page {
+  --cd-primary: #f5c542;
+  --cd-primary-soft: rgba(245, 197, 66, 0.12);
+  --cd-border: #2a2f3d;
+  --cd-text: #e8ecf3;
+  --cd-muted: #9aa5b8;
+  --cd-surface: #1a1e29;
+  --cd-surface-alt: #12151d;
+}
+
+html[data-theme='dark'] .commercial-dossier-detail-page .info-card {
+  background: var(--cd-surface) !important;
+}
+
+html[data-theme='dark'] .commercial-dossier-detail-page .info-list > span {
+  color: var(--cd-text) !important;
+}
+
+html[data-theme='dark'] .commercial-dossier-detail-page .status-strip {
+  background: var(--cd-surface-alt) !important;
+}
+
+html[data-theme='dark'] .commercial-dossier-detail-page .status-strip-meta {
+  background: var(--cd-surface);
+}
+
+html[data-theme='dark'] .commercial-dossier-detail-page .status-strip-meta span {
+  color: var(--cd-text);
+}

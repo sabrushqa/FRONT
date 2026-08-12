@@ -1,0 +1,291 @@
+.workspace-top-panel {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 24px;
+  border-bottom: 1px solid #e3e8ef;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 1px 0 rgba(10, 37, 64, 0.03);
+}
+
+.workspace-top-context,
+.workspace-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.workspace-top-context {
+  min-width: 0;
+  flex: 1;
+}
+
+.workspace-top-copy {
+  min-width: 0;
+  display: grid;
+  gap: 0;
+}
+
+.workspace-top-copy strong {
+  color: #0a2540;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.workspace-top-copy small {
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.workspace-top-actions {
+  margin-left: auto;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.workspace-top-menu,
+.workspace-top-notification,
+.workspace-top-account {
+  border: 1px solid #e3e8ef;
+  background: #ffffff;
+  color: #0a2540;
+  box-shadow: none;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.workspace-top-menu:hover,
+.workspace-top-notification:hover,
+.workspace-top-account:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  color: #0a2540;
+  box-shadow: 0 1px 2px rgba(10, 37, 64, 0.06);
+}
+
+.workspace-top-menu,
+.workspace-top-notification {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  min-width: 38px;
+  padding: 0 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.workspace-top-menu .mat-icon,
+.workspace-top-notification .mat-icon,
+.workspace-top-avatar .mat-icon,
+.workspace-top-account-chevron {
+  font-size: 19px;
+  width: 19px;
+  height: 19px;
+  line-height: 19px;
+}
+
+.workspace-top-notification .mat-badge-content {
+  top: 4px;
+  right: 4px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.workspace-top-account {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 4px 10px 4px 6px;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.workspace-top-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  color: #0a2540;
+  border: 1px solid #e2e8f0;
+  flex: 0 0 auto;
+}
+
+.workspace-top-account-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.workspace-top-account-copy strong {
+  color: #0a2540;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workspace-top-account-copy small {
+  color: #64748b;
+  font-size: 10.5px;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workspace-top-account-chevron {
+  color: #94a3b8;
+  flex: 0 0 auto;
+}
+
+.workspace-top-theme {
+  flex: 0 0 auto;
+}
+
+.workspace-top-theme .theme-toggle {
+  min-height: 38px;
+  min-width: 38px;
+  padding-inline: 8px;
+  border-radius: 10px;
+  border-color: #e3e8ef;
+  background: #ffffff;
+  box-shadow: none;
+  color: #0a2540;
+}
+
+.workspace-top-theme .theme-toggle:hover {
+  box-shadow: 0 1px 2px rgba(10, 37, 64, 0.06);
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.workspace-top-theme .theme-toggle-icon {
+  width: 22px;
+  height: 22px;
+  background: #0f172a;
+  color: #ffffff;
+}
+
+@media (max-width: 1040px) {
+  .workspace-top-panel {
+    padding: 10px 16px;
+  }
+
+  .workspace-top-copy small {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace-top-panel {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .workspace-top-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 560px) {
+  .workspace-top-copy small,
+  .workspace-top-account-chevron {
+    display: none;
+  }
+
+  .workspace-top-actions {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .workspace-top-account {
+    min-width: 0;
+  }
+}
+
+:host-context(.dark) .workspace-top-panel,
+[data-theme="dark"] .workspace-top-panel,
+:host-context(body.dark-theme) .workspace-top-panel {
+  border-bottom-color: var(--app-border);
+  background: rgba(15, 23, 42, 0.96);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+:host-context(.dark) .workspace-top-copy strong,
+[data-theme="dark"] .workspace-top-copy strong,
+:host-context(body.dark-theme) .workspace-top-copy strong,
+:host-context(.dark) .workspace-top-account-copy strong,
+[data-theme="dark"] .workspace-top-account-copy strong,
+:host-context(body.dark-theme) .workspace-top-account-copy strong {
+  color: var(--app-heading);
+}
+
+:host-context(.dark) .workspace-top-copy small,
+[data-theme="dark"] .workspace-top-copy small,
+:host-context(body.dark-theme) .workspace-top-copy small,
+:host-context(.dark) .workspace-top-account-copy small,
+[data-theme="dark"] .workspace-top-account-copy small,
+:host-context(body.dark-theme) .workspace-top-account-copy small,
+:host-context(.dark) .workspace-top-account-chevron,
+[data-theme="dark"] .workspace-top-account-chevron,
+:host-context(body.dark-theme) .workspace-top-account-chevron {
+  color: var(--app-text-muted);
+}
+
+:host-context(.dark) .workspace-top-menu,
+:host-context(.dark) .workspace-top-notification,
+:host-context(.dark) .workspace-top-account,
+[data-theme="dark"] .workspace-top-menu,
+[data-theme="dark"] .workspace-top-notification,
+[data-theme="dark"] .workspace-top-account,
+:host-context(body.dark-theme) .workspace-top-menu,
+:host-context(body.dark-theme) .workspace-top-notification,
+:host-context(body.dark-theme) .workspace-top-account {
+  border-color: var(--app-border);
+  background: var(--app-surface-soft);
+  color: var(--app-heading);
+}
+
+:host-context(.dark) .workspace-top-avatar,
+[data-theme="dark"] .workspace-top-avatar,
+:host-context(body.dark-theme) .workspace-top-avatar {
+  border-color: var(--app-border);
+  background: rgba(148, 163, 184, 0.1);
+  color: var(--app-heading);
+}
+
+:host-context(.dark) ::ng-deep .workspace-top-theme .theme-toggle,
+[data-theme="dark"] ::ng-deep .workspace-top-theme .theme-toggle,
+:host-context(body.dark-theme) ::ng-deep .workspace-top-theme .theme-toggle {
+  border-color: var(--app-border);
+  background: var(--app-surface-soft);
+  color: var(--app-heading);
+}
+
+:host-context(.dark) ::ng-deep .workspace-top-theme .theme-toggle-icon,
+[data-theme="dark"] ::ng-deep .workspace-top-theme .theme-toggle-icon,
+:host-context(body.dark-theme) ::ng-deep .workspace-top-theme .theme-toggle-icon {
+  background: rgba(59, 130, 246, 0.18);
+  color: #93c5fd;
+}

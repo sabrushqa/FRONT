@@ -1,0 +1,469 @@
+/* ============================================================
+   LANA CASH — Réclamations / Chat TPE
+   ============================================================ */
+
+.lc-reclam {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: calc(100vh - 160px);
+  min-height: 480px;
+}
+
+/* ── Info bar ───────────────────────────────────────────────── */
+.lc-infobar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 7px 14px;
+  background: #f0fff4;
+  border: 1px solid #b7dfc6;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.lc-ib-label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: #555;
+  flex-shrink: 0;
+}
+.lc-ib-chip {
+  background: #fff;
+  border: 1px solid #c6f6d5;
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-size: 11px;
+  color: #1e6b3e;
+  font-weight: 500;
+  animation: lc-pop .2s ease;
+}
+@keyframes lc-pop {
+  from { transform: scale(.7); opacity: 0; }
+  to   { transform: scale(1);  opacity: 1; }
+}
+
+/* ── Layout ─────────────────────────────────────────────────── */
+.lc-layout {
+  display: grid;
+  grid-template-columns: 1fr 270px;
+  gap: 14px;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Chat panel ─────────────────────────────────────────────── */
+.lc-chat {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.07);
+}
+
+/* Header */
+.lc-chat-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #1d4ed8;
+  flex-shrink: 0;
+}
+.lc-avatar {
+  position: relative;
+  flex-shrink: 0;
+  img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,.3); }
+}
+.lc-dot {
+  position: absolute;
+  bottom: 1px; right: 1px;
+  width: 9px; height: 9px;
+  background: #22c55e;
+  border: 2px solid #1d4ed8;
+  border-radius: 50%;
+  animation: lc-pulse 2s infinite;
+}
+@keyframes lc-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.lc-head-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.lc-head-name { font-size: 14px; font-weight: 700; color: #fff; }
+.lc-head-sub  { font-size: 11px; color: rgba(255,255,255,.75); }
+
+/* Context pill */
+.lc-ctx-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: #eff6ff;
+  border-bottom: 1px solid #dbeafe;
+  font-size: 11.5px;
+  color: #1d4ed8;
+  font-weight: 600;
+  flex-shrink: 0;
+  .material-icons { font-size: 14px; color: #22c55e; }
+}
+
+.lc-change-tpe {
+  margin-left: auto;
+  padding: 3px 9px;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #fff;
+  color: #1d4ed8;
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  &:hover { background: #dbeafe; }
+}
+
+/* TPE picker — ecran affiche avant le chat, le commerçant doit choisir le
+   TPE concerne (reduit l'hallucination de l'agent : contexte fiable au lieu
+   de suppositions). */
+.lc-tpe-picker {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px 18px;
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+}
+.lc-tpe-picker-title {
+  margin: 0 0 2px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.lc-tpe-picker-sub {
+  margin: 0 0 16px;
+  font-size: 12.5px;
+  color: #64748b;
+}
+.lc-tpe-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+.lc-tpe-pick-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 13px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s;
+
+  &:hover {
+    border-color: #1d4ed8;
+    box-shadow: 0 2px 8px rgba(29, 78, 216, .12);
+  }
+}
+
+/* Thread */
+.lc-thread {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #f8fafc;
+  scroll-behavior: smooth;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+}
+
+/* Messages */
+.lc-msg {
+  display: flex;
+  align-items: flex-end;
+  gap: 7px;
+  max-width: 82%;
+  animation: lc-slide .18s ease;
+}
+@keyframes lc-slide { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+.lc-msg--bot  { align-self: flex-start; }
+.lc-msg--user { align-self: flex-end; flex-direction: row-reverse; }
+
+.lc-msg-av {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  img { width: 100%; height: 100%; object-fit: cover; }
+  &--user { background: #1d4ed8; color: #fff; .material-icons { font-size: 18px; } }
+}
+
+.lc-bubble {
+  padding: 9px 13px 7px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  word-break: break-word;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08);
+  max-width: 100%;
+
+  p { margin: 0; }
+  &.rtl { direction: rtl; text-align: right; font-family: 'Segoe UI', Tahoma, 'Arabic UI', sans-serif; font-size: 14.5px; }
+}
+.lc-msg--bot  .lc-bubble { background: #fff; border-top-left-radius: 2px; color: #1e293b; }
+.lc-msg--user .lc-bubble { background: #1d4ed8; border-top-right-radius: 2px; color: #fff; }
+
+/* Image preview */
+.lc-img-prev {
+  max-width: 200px;
+  max-height: 160px;
+  border-radius: 8px;
+  margin-bottom: 5px;
+  display: block;
+  cursor: pointer;
+  &:hover { opacity: .9; }
+}
+
+/* Audio pill */
+.lc-audio-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,.2);
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 14px;
+  padding: 3px 10px;
+  font-size: 12px;
+  margin-bottom: 4px;
+  .material-icons { font-size: 15px; }
+}
+.lc-msg--bot .lc-audio-pill { background: #e3f2fd; border-color: #90caf9; color: #1565c0; }
+
+/* Timestamp */
+.lc-time {
+  display: block;
+  font-size: 10px;
+  margin-top: 3px;
+  text-align: right;
+  opacity: .6;
+}
+
+/* Typing indicator */
+.lc-typing {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 12px 14px;
+  span {
+    width: 7px; height: 7px;
+    background: #94a3b8;
+    border-radius: 50%;
+    display: block;
+    animation: lc-bop 1.2s infinite;
+    &:nth-child(2) { animation-delay: .15s; }
+    &:nth-child(3) { animation-delay: .30s; }
+  }
+}
+@keyframes lc-bop {
+  0%,60%,100% { transform: translateY(0); }
+  30%          { transform: translateY(-6px); }
+}
+
+/* Ticket card */
+.lc-ticket {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: #f0fff4;
+  border: 1px solid #68d391;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #1e293b;
+}
+.lc-ticket-head {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+.lc-tid { font-size: 13px; font-weight: 800; color: #276749; }
+.lc-tprio {
+  font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px;
+  &.lc-tp-critical { background:#ffebee;color:#c62828; }
+  &.lc-tp-high     { background:#fff3e0;color:#e65100; }
+  &.lc-tp-medium   { background:#e3f2fd;color:#1565c0; }
+  &.lc-tp-low      { background:#f3e5f5;color:#6a1b9a; }
+}
+.lc-tdesc {
+  padding: 7px; background: #e8f5e9; border-radius: 6px;
+  font-size: 11.5px; color: #2d6a4f; white-space: pre-wrap;
+  line-height: 1.5; font-family: inherit; margin: 0;
+}
+.lc-tsaved {
+  display: flex; align-items: center; gap: 5px;
+  margin-top: 6px; font-size: 11px; color: #276749; font-weight: 600;
+  .material-icons { font-size: 14px; }
+}
+
+/* ── Composer ───────────────────────────────────────────────── */
+.lc-composer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #fff;
+  border-top: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+.lc-input {
+  flex: 1;
+  height: 42px;
+  padding: 0 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 24px;
+  background: #f8fafc;
+  font: inherit;
+  font-size: 13.5px;
+  color: #1e293b;
+  transition: border-color .15s;
+  &:focus { outline: none; border-color: #1d4ed8; background: #fff; }
+  &::placeholder { color: #94a3b8; }
+  &:disabled { opacity: .6; }
+}
+.lc-btn-icon {
+  width: 38px; height: 38px;
+  border: none; background: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #64748b;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, color .15s;
+  flex-shrink: 0;
+  .material-icons { font-size: 22px; }
+  &:hover { background: #f1f5f9; color: #1d4ed8; }
+}
+
+/* Mic button */
+.lc-mic-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 0 12px; height: 38px;
+  border: none; border-radius: 24px;
+  background: #f1f5f9;
+  color: #475569;
+  font: inherit; font-size: 12px; font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+  flex-shrink: 0;
+  .material-icons { font-size: 20px; }
+  &:hover { background: #e2e8f0; color: #1d4ed8; }
+  &--on {
+    background: #fee2e2;
+    color: #dc2626;
+    animation: lc-rec-pulse 1.2s infinite;
+    .material-icons { font-size: 20px; }
+  }
+}
+.lc-rec-label { font-size: 12px; font-weight: 700; min-width: 36px; }
+@keyframes lc-rec-pulse {
+  0%,100% { background: #fee2e2; }
+  50%      { background: #fecaca; }
+}
+
+/* Send button */
+.lc-send {
+  width: 42px; height: 42px;
+  border: none; border-radius: 50%;
+  background: #1d4ed8;
+  color: #fff;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, transform .1s;
+  flex-shrink: 0;
+  .material-icons { font-size: 20px; }
+  &:hover:not(:disabled) { background: #1e40af; }
+  &:active { transform: scale(.9); }
+  &:disabled { opacity: .45; cursor: not-allowed; }
+}
+
+/* ── Side panel ─────────────────────────────────────────────── */
+.lc-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  &::-webkit-scrollbar { width: 3px; }
+  &::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 3px; }
+}
+.lc-side-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,.05);
+  flex-shrink: 0;
+}
+.lc-side-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px;
+  background: #1d4ed8;
+  font-size: 12.5px; font-weight: 700; color: #fff;
+  .material-icons { font-size: 18px; color: #f97316; }
+}
+.lc-side-body {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.lc-srow {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: #334155;
+  .material-icons { font-size: 16px; color: #94a3b8; flex-shrink: 0; }
+  &--sub { padding-left: 24px; font-size: 11px; color: #64748b; }
+}
+
+/* TPE rows */
+.lc-tpe-row {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid #f1f5f9;
+  &:last-child { border-bottom: none; }
+}
+.lc-tpe-icon { font-size: 20px; flex-shrink: 0; }
+.lc-tpe-model  { font-size: 12.5px; font-weight: 700; color: #1e293b; }
+.lc-tpe-serial { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+.lc-tpe-meta   { font-size: 11px; color: #64748b; margin-top: 2px; }
+.lc-tpe-statut {
+  font-weight: 700;
+  &.lc-tpe-actif    { color: #16a34a; }
+  &.lc-tpe-inactif  { color: #dc2626; }
+  &.lc-tpe-en_cours { color: #d97706; }
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 960px) {
+  .lc-layout { grid-template-columns: 1fr; }
+  .lc-side { display: none; }  /* hidden on mobile, show via toggle if needed */
+  .lc-reclam { height: calc(100vh - 130px); }
+}
+@media (max-width: 600px) {
+  .lc-chat-head { padding: 10px 12px; }
+  .lc-thread    { padding: 10px 8px; }
+  .lc-composer  { padding: 8px; gap: 6px; }
+  .lc-msg       { max-width: 90%; }
+  .lc-ctx-pill  { font-size: 10.5px; }
+}
+
+/* ── Legacy classes (keep for other components) ─────────────── */
+.chat-page, .chat-layout, .chat-panel, .chat-toolbar,
+.chat-thread, .chat-composer, .support-panel { /* preserved */ }
+
+/* Espace sous-commerçant : accent bleu clair a la place de l'orange. */
+.role-merchant.role-submerchant .lc-side-head .material-icons { color: #59bfe0; }

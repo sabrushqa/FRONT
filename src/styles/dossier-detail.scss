@@ -1,0 +1,767 @@
+/* ============================================================
+   LANA CASH — DOSSIER DETAIL
+   Vue détail + formulaire édition (commercial / backoffice)
+   Design: Navy + Golden Yellow — adaptatif automatique
+   ============================================================ */
+
+/* ============================================================
+   OVERRIDES PAGE-CARD POUR LE DETAIL
+   ============================================================ */
+
+.page-grid .page-card .page-head {
+  border-radius: var(--lc-radius-lg, 14px) var(--lc-radius-lg, 14px) 0 0;
+}
+
+/* ============================================================
+   MISE EN PAGE DU HEADER DE DETAIL (commun commercial/back-office)
+   Regles structurelles seulement (pas de couleur) : ce fichier n'est PAS
+   auto-scope par role (contrairement a commercial-dossier-detail.scss,
+   qui ne s'applique qu'au role COMMERCIAL via le plugin PostCSS de
+   vite.config.ts) donc c'est ici que doit vivre tout ce qui doit
+   s'appliquer identiquement aux deux roles qui partagent cette page
+   (CommercialDossierDetailPage, monte aussi bien sous /commercial que
+   sous /backoffice). Les couleurs/degrades restent dans les fichiers
+   role-scopes.
+   ============================================================ */
+
+.commercial-dossier-detail-page .page-head {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  padding: 16px 24px;
+}
+
+.commercial-dossier-detail-page .page-head h2 {
+  color: #ffffff;
+}
+
+.commercial-dossier-detail-page .page-head .page-subtle {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.commercial-dossier-detail-page .header-actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.commercial-dossier-detail-page .header-actions button {
+  width: auto;
+  min-height: 34px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  gap: 5px;
+}
+
+.commercial-dossier-detail-page .header-actions .btn-secondary {
+  border-color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.95);
+  color: #0b1120;
+}
+
+.commercial-dossier-detail-page .header-actions .btn-secondary:hover:not(:disabled) {
+  background: #ffffff;
+  border-color: #ffffff;
+}
+
+@media (max-width: 1180px) {
+  .commercial-dossier-detail-page .header-actions {
+    justify-content: flex-start;
+  }
+}
+
+/* ---- Status strip : forme commune (pastilles), couleurs role-scopees ---- */
+
+.commercial-dossier-detail-page .status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 0;
+}
+
+.commercial-dossier-detail-page .status-strip .status-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.commercial-dossier-detail-page .status-strip .status-chip::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.commercial-dossier-detail-page .status-strip-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--lc-line, #e2e8f0);
+  border-radius: 999px;
+  background: #ffffff;
+}
+
+.commercial-dossier-detail-page .status-strip-meta strong {
+  display: inline-flex;
+  align-items: center;
+  color: var(--lc-muted, #64748b);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.commercial-dossier-detail-page .status-strip-meta strong::after {
+  content: '';
+  display: inline-block;
+  width: 1px;
+  height: 12px;
+  margin-left: 8px;
+  background: var(--lc-line, #e2e8f0);
+}
+
+.commercial-dossier-detail-page .status-strip-meta span {
+  min-width: 0;
+  color: var(--lc-text, #0f172a);
+  font-size: 12.5px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.commercial-dossier-detail-page .status-strip-meta-warn {
+  flex-basis: 100%;
+  min-height: 38px;
+  margin: 0 -24px;
+  padding: 0 24px;
+  background: #fff7ed;
+  border-top: 1px solid #fed7aa;
+}
+
+.commercial-dossier-detail-page .status-strip-meta-warn strong,
+.commercial-dossier-detail-page .status-strip-meta-warn span {
+  color: #c2410c;
+}
+
+@media (max-width: 1180px) {
+  .commercial-dossier-detail-page .status-strip {
+    padding: 8px 24px;
+    gap: 6px;
+  }
+
+  .commercial-dossier-detail-page .status-strip .status-chip {
+    min-height: 34px;
+    padding: 0 14px;
+  }
+
+  .commercial-dossier-detail-page .status-strip-meta {
+    min-height: 34px;
+    padding: 0 10px;
+  }
+}
+
+@media (max-width: 760px) {
+  .commercial-dossier-detail-page .status-strip {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .commercial-dossier-detail-page .status-strip {
+    padding: 9px 16px;
+  }
+
+  .commercial-dossier-detail-page .status-strip .status-chip,
+  .commercial-dossier-detail-page .status-strip-meta,
+  .commercial-dossier-detail-page .header-actions button {
+    width: 100%;
+    min-height: 32px;
+  }
+
+  .commercial-dossier-detail-page .status-strip .status-chip,
+  .commercial-dossier-detail-page .status-strip-meta {
+    padding: 0 14px;
+  }
+}
+
+/* ---- Onglets de section (Aperçu / Configuration / Suivi & documents) :
+   forme commune, couleur d'accent role-scopee via var(--cd-primary). ---- */
+
+.commercial-dossier-detail-page .detail-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 24px 8px;
+  border-bottom: 1px solid var(--lc-line, #e2e8f0);
+}
+
+.commercial-dossier-detail-page .detail-tab-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 9px 14px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--lc-muted, #64748b);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  border-radius: 8px 8px 0 0;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.commercial-dossier-detail-page .detail-tab-btn:hover {
+  color: var(--cd-primary, #d4a017);
+  background: var(--cd-primary-soft, #fef9ec);
+}
+
+.commercial-dossier-detail-page .detail-tab-btn.is-active {
+  color: var(--cd-primary, #d4a017);
+  border-bottom-color: var(--cd-primary, #d4a017);
+  background: var(--cd-primary-soft, #fef9ec);
+}
+
+/* ============================================================
+   SECTION HEAD dans page-card (formulaire édition)
+   ============================================================ */
+
+.page-card .section-head {
+  background: var(--lc-navy-mid, #1A2C42);
+  border-bottom: 2px solid var(--lc-gold);
+}
+
+/* ============================================================
+   FORM FIELD — <label className="form-field">
+   ============================================================ */
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.form-field > span {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--lc-muted, #64748B);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.form-field .form-input,
+.form-field textarea.form-input {
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 1.5px solid var(--lc-line, #E2E8F0);
+  border-radius: 6px;
+  background: var(--lc-surface, #FFFFFF);
+  color: var(--lc-text, #1A2332);
+  font: inherit;
+  font-size: 13px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.form-field .form-input:focus {
+  outline: none;
+  border-color: var(--lc-gold);
+  box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.15);
+}
+
+.form-field .form-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--lc-surface-alt, #F8FAFC);
+}
+
+/* select inside form-field */
+.form-field select.form-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 32px;
+  cursor: pointer;
+}
+
+/* ============================================================
+   FORM GRID (dans formulaire édition dossier)
+   ============================================================ */
+
+.page-card .form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  padding: 18px 24px;
+}
+
+.page-card .field-full { grid-column: 1 / -1; }
+
+.page-card .form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  border-top: 2px solid var(--lc-gold);
+  background: var(--lc-gold-soft, rgba(212, 160, 23, 0.05));
+}
+
+/* ============================================================
+   SERVICE OPTIONS dans formulaire d'édition
+   ============================================================ */
+
+.service-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 20px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--lc-gold-border, rgba(212, 160, 23, 0.30));
+  border-radius: 8px;
+  background: var(--lc-gold-soft, rgba(212, 160, 23, 0.06));
+}
+
+.service-options-title {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--lc-navy);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--lc-gold-border, rgba(212, 160, 23, 0.30));
+}
+
+.service-options-title::before {
+  content: '';
+  width: 3px;
+  height: 13px;
+  background: var(--lc-gold);
+  border-radius: 2px;
+}
+
+.service-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--lc-text, #1A2332);
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.service-options input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  accent-color: var(--lc-gold);
+  cursor: pointer;
+}
+
+/* ============================================================
+   INFO CARD — cartes données vue détail
+   ============================================================ */
+
+.info-card {
+  background: var(--lc-surface, #FFFFFF);
+  border: 1px solid var(--lc-line, #E2E8F0);
+  border-radius: var(--lc-radius, 10px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(15, 27, 45, 0.05);
+  transition: box-shadow 0.18s ease;
+}
+
+.info-card:hover {
+  box-shadow: 0 3px 10px rgba(15, 27, 45, 0.08);
+}
+
+.info-card h3 {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--lc-navy);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--lc-gold-soft, rgba(212, 160, 23, 0.08));
+  border-bottom: 1px solid var(--lc-gold-border, rgba(212, 160, 23, 0.25));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-card h3::before {
+  content: '';
+  width: 3px;
+  height: 13px;
+  background: var(--lc-gold);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* Accent alternés */
+.info-card:nth-child(3n+2) h3 { background: var(--lc-navy-soft, rgba(15, 27, 45, 0.04)); border-color: var(--lc-line, #E2E8F0); }
+.info-card:nth-child(3n+2) h3::before { background: var(--lc-navy-mid, #1A2C42); }
+.info-card:nth-child(3n+3) h3::before { background: #B88A0F; }
+
+/* ============================================================
+   INFO LIST — paires label/valeur
+   ============================================================ */
+
+.info-list {
+  display: grid;
+  padding: 0;
+  flex: 1;
+}
+
+.info-list > span {
+  display: grid;
+  grid-template-columns: minmax(90px, 42%) 1fr;
+  gap: 8px;
+  padding: 7px 12px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--lc-line-soft, #EEF2F7);
+  align-items: baseline;
+  min-height: 30px;
+  line-height: 1.45;
+  color: var(--lc-text, #1A2332);
+  word-break: break-word;
+  transition: background 0.12s ease;
+}
+
+.info-list > span:last-child { border-bottom: none; }
+.info-list > span:nth-child(even) { background: var(--lc-surface-alt, #F8FAFC); }
+.info-list > span:hover { background: var(--lc-gold-soft, rgba(212, 160, 23, 0.06)) !important; }
+
+.info-list > span strong {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--lc-muted, #64748B);
+  letter-spacing: 0.01em;
+}
+
+/* ============================================================
+   DETAIL GRID — masonry CSS auto (via :has())
+   ============================================================ */
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: min-content;
+  grid-auto-flow: dense;
+  gap: 12px;
+  padding: 16px 24px 20px;
+  align-items: start;
+}
+
+/* Par défaut : 1 colonne */
+.detail-grid > .info-card { grid-column: span 1; }
+
+/* Grandes cartes (9+ champs) → pleine largeur, en bas */
+.detail-grid > .info-card:has(.info-list > span:nth-child(n+9)) {
+  grid-column: 1 / -1;
+  order: 100;
+}
+
+/* Colonnes internes selon nb de champs */
+.detail-grid > .info-card:has(.info-list > span:nth-child(n+9)) .info-list  { grid-template-columns: 1fr 1fr; }
+.detail-grid > .info-card:has(.info-list > span:nth-child(n+15)) .info-list { grid-template-columns: 1fr 1fr 1fr; }
+.detail-grid > .info-card:has(.info-list > span:nth-child(n+21)) .info-list { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+/* Séparateurs verticaux colonnes multi */
+.detail-grid > .info-card:has(.info-list > span:nth-child(n+9)) .info-list > span {
+  min-height: 28px;
+  padding: 6px 12px;
+  background: transparent;
+  border-right: 1px solid var(--lc-line-soft, #EEF2F7);
+}
+
+.detail-grid > .info-card:has(.info-list > span:nth-child(n+9))  .info-list > span:nth-child(2n) { border-right: none; }
+.detail-grid > .info-card:has(.info-list > span:nth-child(n+15)) .info-list > span:nth-child(3n) { border-right: none; }
+.detail-grid > .info-card:has(.info-list > span:nth-child(n+21)) .info-list > span:nth-child(4n) { border-right: none; }
+
+/* Zebra pour multi-cols */
+.detail-grid > .info-card:has(.info-list > span:nth-child(n+9)) .info-list > span:nth-child(4n+1),
+.detail-grid > .info-card:has(.info-list > span:nth-child(n+9)) .info-list > span:nth-child(4n+2) {
+  background: var(--lc-surface-alt, #F8FAFC) !important;
+}
+
+/* Petites cartes (≤2 champs) : compacter */
+.detail-grid > .info-card:not(:has(.info-list > span:nth-child(n+3))) .info-list > span {
+  min-height: 34px;
+  padding: 9px 12px;
+}
+
+/* Documents → pleine largeur */
+.detail-grid > .info-card.card-documents {
+  grid-column: 1 / -1;
+}
+
+/* Cartes larges (6-7+ champs, cf. CommercialDossierDetailPage/SupervisorAffiliationDetailPage)
+   → 2 des 4 colonnes du detail-grid pour laisser respirer les paires label/valeur. */
+.detail-grid > .info-card.card-wide {
+  grid-column: span 2;
+}
+
+/* Cartes explicitement pleine largeur (tres grosses cartes, ex. compte-rendu commercial) */
+.detail-grid > .info-card.card-full {
+  grid-column: 1 / -1;
+}
+
+/* Cartes compactes (peu de champs) : liste plus dense */
+.info-card.card-compact .info-list > span {
+  min-height: 26px;
+  padding: 6px 12px;
+}
+
+/* Liste interne en 2 colonnes (cartes avec beaucoup de champs) */
+.info-card.list-2cols .info-list {
+  grid-template-columns: 1fr 1fr;
+}
+
+.info-card.list-2cols .info-list > span:nth-child(odd):not(:last-child) {
+  border-right: 1px solid var(--lc-line-soft, #EEF2F7);
+}
+
+/* ============================================================
+   DOCUMENT ROW — dans info-card documents
+   ============================================================ */
+
+.info-card.card-documents .info-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  padding: 0;
+}
+
+.document-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  padding: 9px 14px !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid var(--lc-line-soft, #EEF2F7) !important;
+  border-right: 1px solid var(--lc-line-soft, #EEF2F7) !important;
+  min-height: 40px;
+  transition: background 0.14s ease;
+}
+
+.document-row:hover { background: var(--lc-gold-soft, rgba(212, 160, 23, 0.06)) !important; }
+.document-row:nth-child(even) { background: var(--lc-surface-alt, #F8FAFC) !important; }
+
+.document-row > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--lc-text, #1A2332);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document-row > span strong {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--lc-muted, #64748B);
+  flex-shrink: 0;
+}
+
+.document-row button {
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   FORM ACTIONS dans info-card (téléchargements)
+   ============================================================ */
+
+.info-card .form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 14px;
+  margin-top: auto;
+  border-top: 1px solid var(--lc-gold-border, rgba(212, 160, 23, 0.25));
+  background: var(--lc-gold-soft, rgba(212, 160, 23, 0.05));
+}
+
+.info-card .form-actions button {
+  flex: 1 1 auto;
+  min-width: 110px;
+}
+
+/* Compte-rendu : boutons à droite */
+.detail-grid > .info-card:has(.info-list > span:nth-child(n+9)) .form-actions {
+  justify-content: flex-end;
+}
+.detail-grid > .info-card:has(.info-list > span:nth-child(n+9)) .form-actions button {
+  flex: 0 0 auto;
+  min-width: 150px;
+}
+
+/* ============================================================
+   PAGE TEXT (vide)
+   ============================================================ */
+
+.page-text {
+  padding: 20px;
+  text-align: center;
+  color: var(--lc-muted, #64748B);
+  font-size: 12px;
+  font-style: italic;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================================
+   NEW PDV SUMMARY
+   ============================================================ */
+
+.new-pdv-summary {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 14px;
+  margin: 0 24px 16px;
+  padding: 16px;
+  border: 1.5px solid var(--lc-gold-border, rgba(212, 160, 23, 0.30));
+  border-left: 3px solid var(--lc-gold);
+  border-radius: 8px;
+  background: var(--lc-gold-soft, rgba(212, 160, 23, 0.06));
+}
+
+.new-pdv-summary > div  { display: grid; gap: 4px; min-width: 0; }
+.new-pdv-summary span   { color: var(--lc-muted, #64748B); font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+.new-pdv-summary strong { color: var(--lc-navy); font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+
+/* ============================================================
+   RESPONSIVE ADAPTATIF
+   ============================================================ */
+
+@media (max-width: 1400px) {
+  .detail-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .detail-grid > .info-card:has(.info-list > span:nth-child(n+21)) .info-list { grid-template-columns: 1fr 1fr 1fr; }
+  .detail-grid > .info-card:has(.info-list > span:nth-child(n+21)) .info-list > span:nth-child(3n) { border-right: none; }
+  .detail-grid > .info-card:has(.info-list > span:nth-child(n+21)) .info-list > span:nth-child(4n) { border-right: 1px solid var(--lc-line-soft); }
+}
+
+@media (max-width: 1080px) {
+  .detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .detail-grid > .info-card:has(.info-list > span:nth-child(n+9)) .info-list,
+  .detail-grid > .info-card:has(.info-list > span:nth-child(n+15)) .info-list,
+  .detail-grid > .info-card:has(.info-list > span:nth-child(n+21)) .info-list {
+    grid-template-columns: 1fr 1fr;
+  }
+  .page-card .form-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .detail-grid { grid-template-columns: 1fr; padding: 12px 16px 16px; }
+  .detail-grid > .info-card { grid-column: 1 !important; }
+  .detail-grid > .info-card:has(.info-list > span:nth-child(n+9)) .info-list { grid-template-columns: 1fr; }
+  .detail-grid > .info-card:has(.info-list > span:nth-child(n+9)) .info-list > span { border-right: none; }
+  .page-card .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 14px 16px; }
+  .service-options { grid-template-columns: 1fr; }
+  .new-pdv-summary { grid-template-columns: 1fr; margin: 0 16px 14px; }
+  .info-card.card-documents .info-list { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .page-card .form-grid { grid-template-columns: 1fr; }
+  .info-list > span { grid-template-columns: 1fr; gap: 2px; padding: 7px 12px; }
+  .detail-grid { padding: 10px 12px; }
+  .page-card .form-actions { padding: 12px 16px; }
+}
+
+/* ============================================================
+   DARK MODE
+   ============================================================ */
+
+[data-theme="dark"] {
+  --lc-surface:     var(--lc-navy);
+  --lc-surface-alt: #0A1520;
+  --lc-line:        #1E3048;
+  --lc-line-soft:   #172840;
+  --lc-text:        #D5E0EE;
+  --lc-muted:       #8FA6BE;
+  --lc-navy:        #F0F6FF;
+  --lc-navy-mid:    #1A2C42;
+  --lc-gold-soft:   rgba(212, 160, 23, 0.08);
+  --lc-gold-border: rgba(212, 160, 23, 0.20);
+}
+
+[data-theme="dark"] .info-card {
+  background: var(--lc-surface);
+  border-color: var(--lc-line);
+}
+
+[data-theme="dark"] .info-card h3 {
+  background: rgba(212, 160, 23, 0.08);
+  border-color: rgba(212, 160, 23, 0.18);
+  color: #F0F6FF;
+}
+
+[data-theme="dark"] .info-list > span:nth-child(even) {
+  background: rgba(10, 21, 32, 0.5);
+}
+
+[data-theme="dark"] .info-list > span:hover {
+  background: rgba(212, 160, 23, 0.06) !important;
+}
+
+[data-theme="dark"] .document-row:nth-child(even) {
+  background: rgba(10, 21, 32, 0.5) !important;
+}
+
+[data-theme="dark"] .page-card .form-grid .form-field .form-input {
+  background: var(--lc-surface);
+  border-color: var(--lc-line);
+  color: var(--lc-text);
+}
+
+[data-theme="dark"] .page-card .form-grid .form-field .form-input:focus {
+  border-color: var(--lc-gold);
+  box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.12);
+}

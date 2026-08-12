@@ -1,0 +1,24 @@
+.direct-merchants-page {
+  --merchant-accent: var(--lc-gold);
+}
+
+.merchants-filter-panel {
+  background: #fffaf0;
+}
+
+.merchants-filter-grid {
+  align-items: center;
+  grid-template-columns: minmax(260px, 1fr) minmax(210px, 260px) auto;
+}
+
+/* Statut « brouillon » couleur jaune douce, raccord avec la charte commerciale */
+.status-draft {
+  background: #fff7da;
+  color: #8a6400;
+}
+
+@media (max-width: 760px) {
+  .merchants-filter-grid {
+    grid-template-columns: 1fr;
+  }
+}

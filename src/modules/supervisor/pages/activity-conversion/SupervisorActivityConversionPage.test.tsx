@@ -1,0 +1,51 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import SupervisorActivityConversionPage from './SupervisorActivityConversionPage';
+
+const getOverviewMock = vi.fn();
+const getAffiliationRequestsMock = vi.fn();
+const getPdvMapMock = vi.fn();
+const getTpeStockMock = vi.fn();
+
+vi.mock('../../services/supervisorApi', () => ({
+  getOverview: (...args: unknown[]) => getOverviewMock(...args),
+  getAffiliationRequests: (...args: unknown[]) => getAffiliationRequestsMock(...args),
+  getPdvMap: (...args: unknown[]) => getPdvMapMock(...args),
+  getTpeStock: (...args: unknown[]) => getTpeStockMock(...args)
+}));
+
+function request(overrides: Partial<Record<string, unknown>> = {}) {
+  return {
+    dossierId: 1,
+    status: 'ACCEPTE',
+    compteActif: true,
+    origineCreation: 'AUTO_AFFILIATION',
+    typeAffiliation: 'TPE',
+    typeCommercant: 'PERSONNE_PHYSIQUE',
+    dateSoumission: new Date().toISOString(),
+    ...overrides
+  };
+}
+
+beforeEach(() => {
+  getOverviewMock.mockReset().mockResolvedValue({ backOffices: [], commerciales: [], commercants: [] });
+  getAffiliationRequestsMock.mockReset().mockResolvedValue({ requests: [request()] });
+  getPdvMapMock.mockReset().mockResolvedValue({ pdvs: [] });
+  getTpeStockMock.mockReset().mockResolvedValue({ tpes: [] });
+});
+
+describe('SupervisorActivityConversionPage', () => {
+  it('affiche les 3 sections fusionnees : conversion, volume du mois et segmentation', async () => {
+    render(<SupervisorActivityConversionPage />);
+
+    expect(await screen.findByText('Auto-affiliation vs prospection directe')).toBeInTheDocument();
+    expect(screen.getByText('Demandes reçues ce mois-ci')).toBeInTheDocument();
+    expect(screen.getByText('Type d’affiliation et nature de personne')).toBeInTheDocument();
+  });
+
+  it("affiche un message d'erreur si le chargement echoue", async () => {
+    getAffiliationRequestsMock.mockRejectedValue(new Error('503'));
+    render(<SupervisorActivityConversionPage />);
+    expect(await screen.findByText('Les indicateurs superviseur sont indisponibles.')).toBeInTheDocument();
+  });
+});

@@ -1,0 +1,315 @@
+.commercial-direct-page {
+  --direct-accent: var(--lc-gold);
+}
+
+.direct-filter-panel {
+  background: #fff7da;
+}
+
+.direct-filter-grid {
+  grid-template-columns: minmax(260px, 1.4fr) repeat(2, minmax(190px, 0.8fr));
+}
+
+/* Row accent by status — the table is plain HTML/React, not Angular Material,
+   so this must target the real <tr>/<td> structure (a previous version of this
+   rule targeted .mat-row/.mat-cell, which don't exist here and never applied). */
+.direct-request-table tbody tr td:first-child {
+  border-left: 3px solid transparent;
+}
+
+.direct-request-table tbody tr.row-draft td:first-child          { border-left-color: #D4AC0D; }
+.direct-request-table tbody tr.row-correction td:first-child     { border-left-color: #E67E22; }
+.direct-request-table tbody tr.row-pending td:first-child         { border-left-color: #F39C12; }
+.direct-request-table tbody tr.row-progress td:first-child        { border-left-color: #6D4FC0; }
+.direct-request-table tbody tr.row-sent td:first-child            { border-left-color: var(--sky-400); }
+.direct-request-table tbody tr.row-active td:first-child          { border-left-color: #27AE60; }
+.direct-request-table tbody tr.row-refused td:first-child         { border-left-color: #C0392B; }
+.direct-request-table tbody tr.row-reminder-today td:first-child  { border-left-color: #E74C3C; }
+.direct-request-table tbody tr.row-stale td:first-child           { border-left-color: #95A5A6; }
+
+/* Status badge colors — covers the keys specific to this page (draft, reminder-today,
+   stale) on top of the common ones (pending/sent/progress/active/refused already
+   styled by the shared .status-badge rules loaded globally). */
+.status-badge.status-draft          { background: #fff7da; color: #8a6400; }
+.status-badge.status-correction     { background: #fff0e1; color: #a14d00; }
+.status-badge.status-reminder-today { background: #fdecea; color: #b03a2e; }
+.status-badge.status-stale          { background: #eceff1; color: #546e7a; }
+
+/* Status filter buttons — this page has extra keys (all/draft/reminder-today/stale)
+   the shared .status-filter rules (from commercial-dossiers.scss) don't cover, so
+   the full set is defined here directly rather than relying on another page's CSS. */
+.status-filter {
+  &.status-all            { border-color: var(--border) !important;  color: var(--text-secondary) !important; }
+  &.status-draft           { border-color: #D4AC0D !important;       color: #8a6400 !important; }
+  &.status-correction      { border-color: #E67E22 !important;       color: #A14D00 !important; }
+  &.status-pending         { border-color: #F39C12 !important;       color: #B7770D !important; }
+  &.status-progress        { border-color: #6D4FC0 !important;       color: #4A2E9E !important; }
+  &.status-sent            { border-color: var(--sky-400) !important; color: var(--sky-600) !important; }
+  &.status-active          { border-color: #27AE60 !important;       color: #1D7A44 !important; }
+  &.status-refused         { border-color: #C0392B !important;       color: #922B21 !important; }
+  &.status-reminder-today  { border-color: #E74C3C !important;       color: #C0392B !important; }
+  &.status-stale           { border-color: #95A5A6 !important;       color: #546E7A !important; }
+
+  &.is-selected {
+    &.status-all            { background: var(--navy-900) !important; color: var(--white) !important; border-color: var(--navy-900) !important; }
+    &.status-draft           { background: #D4AC0D !important;         color: var(--white) !important; }
+    &.status-correction      { background: #E67E22 !important;         color: var(--white) !important; }
+    &.status-pending         { background: #F39C12 !important;         color: var(--white) !important; }
+    &.status-progress        { background: #6D4FC0 !important;         color: var(--white) !important; }
+    &.status-sent            { background: var(--sky-600) !important;  color: var(--navy-900) !important; border-color: var(--sky-600) !important; }
+    &.status-active          { background: #27AE60 !important;         color: var(--white) !important; }
+    &.status-refused         { background: #C0392B !important;         color: var(--white) !important; }
+    &.status-reminder-today  { background: #E74C3C !important;         color: var(--white) !important; }
+    &.status-stale           { background: #95A5A6 !important;         color: var(--white) !important; }
+  }
+}
+
+/* "Réinitialiser" button — more visible than the plain outline it fell back to. */
+.clear-filters-btn {
+  border-color: var(--direct-accent) !important;
+  color: #8a6400 !important;
+  background: #fffdf4 !important;
+  font-weight: 700 !important;
+
+  &:hover {
+    background: var(--direct-accent) !important;
+    color: var(--white) !important;
+  }
+}
+
+.prospect-badge {
+  display: inline-flex;
+  width: fit-content;
+  margin-left: 6px;
+  background: #eaf7fc;
+  color: #0f5770;
+}
+
+.interaction-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: grid;
+  place-items: center;
+  padding: 28px 42px;
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(2px);
+}
+
+.interaction-dialog {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: min(860px, 100%);
+  max-height: min(78vh, 680px);
+  border: 1px solid #dbe3ef;
+  border-top: 4px solid var(--direct-accent);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+  overflow: hidden;
+}
+
+.interaction-head,
+.interaction-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.interaction-head {
+  padding: 16px 18px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fffdf4;
+}
+
+.interaction-head strong,
+.interaction-history > strong {
+  display: block;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.interaction-head span {
+  display: block;
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.interaction-dialog-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
+  gap: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.interaction-dialog-body.history-only {
+  grid-template-columns: 1fr;
+}
+
+.interaction-form-stack {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 16px;
+}
+
+.interaction-step {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e8eef6;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.step-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.step-title > span {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.step-title strong {
+  display: block;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.step-title small {
+  display: block;
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.interaction-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.field-full {
+  grid-column: 1 / -1;
+}
+
+.interaction-actions {
+  justify-content: flex-end;
+  padding: 14px 18px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.interaction-history {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 16px;
+  border-left: 1px solid #e2e8f0;
+  background: #f8fafc;
+  overflow: auto;
+}
+
+.interaction-dialog-body.history-only .interaction-history {
+  min-height: 280px;
+  border-left: 0;
+  background: #ffffff;
+}
+
+.interaction-loading {
+  padding: 10px;
+}
+
+.interaction-item {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid #eef2f7;
+  border-radius: 4px;
+  background: #f8fafc;
+}
+
+.interaction-item div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.interaction-item strong {
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.interaction-item span,
+.interaction-item small {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.interaction-item p {
+  margin: 0;
+  color: #334155;
+  font-size: 12px;
+}
+
+  @media (max-width: 980px) {
+  .direct-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .interaction-overlay {
+    align-items: stretch;
+    padding: 10px;
+  }
+
+  .interaction-dialog {
+    max-height: calc(100vh - 20px);
+  }
+
+  .interaction-dialog-body {
+    grid-template-columns: 1fr;
+  }
+
+  .interaction-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .interaction-history {
+    border-left: 0;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .interaction-head,
+  .interaction-item div {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .interaction-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+}
+
+/* Mode sombre — le fond jaune pale est code en dur (pas de var()) donc ne
+   suit pas le theme; sans ceci le texte de l'entete (deja adapte au sombre
+   via l'alias --navy-900 -> --lc-navy) devient illisible dessus. */
+[data-theme="dark"] .direct-filter-panel {
+  background: #0A1520;
+}
