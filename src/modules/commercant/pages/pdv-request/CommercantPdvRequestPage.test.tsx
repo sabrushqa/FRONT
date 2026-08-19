@@ -337,4 +337,38 @@ describe('CommercantPdvRequestPage', () => {
 
     expect(await screen.findByText('Fichier invalide.')).toBeInTheDocument();
   });
+
+  it('demande un nombre de SoftPOS (plafonne a 10) et un modele, soumet correctement', async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'COMMERCANT', typeAffiliation: 'ENCAISSEMENT' })
+    );
+    requestNewPdvProductMock.mockResolvedValue({ message: 'Demande envoyée avec succès' });
+
+    render(<CommercantPdvRequestPage />);
+    fireEvent.click(screen.getByRole('button', { name: 'SoftPOS' }));
+
+    // Les champs TPE disparaissent, ceux du SoftPOS apparaissent.
+    expect(screen.queryByLabelText(/Équipement/i)).toBeNull();
+    const quantityField = screen.getByLabelText('Nombre *');
+    expect(quantityField).toBeInTheDocument();
+
+    fireEvent.change(quantityField, { target: { value: '25' } });
+    expect(quantityField).toHaveValue(10);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Soumettre la demande' }));
+    expect(screen.getAllByText(/Veuillez remplir/).length).toBeGreaterThan(0);
+    expect(requestNewPdvProductMock).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByLabelText('Nom du point de vente *'), { target: { value: 'Boutique SoftPOS' } });
+    fireEvent.change(screen.getByLabelText(/^Ville/i), { target: { value: 'Casablanca' } });
+    fireEvent.change(screen.getByLabelText(/Téléphone/i), { target: { value: '0600000000' } });
+    fireEvent.change(screen.getByLabelText(/Adresse/i), { target: { value: '1 rue Test' } });
+    fireEvent.change(screen.getByLabelText('Modèle *'), { target: { value: 'SoftPOS' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Soumettre la demande' }));
+
+    expect(await screen.findByText('Demande envoyée avec succès')).toBeInTheDocument();
+    expect(requestNewPdvProductMock).toHaveBeenCalledWith(
+      expect.objectContaining({ typeAffiliation: 'SOFTPOS', nombreQrSoftpos: '10', modeleQrSoftpos: 'SoftPOS' })
+    );
+  });
 });

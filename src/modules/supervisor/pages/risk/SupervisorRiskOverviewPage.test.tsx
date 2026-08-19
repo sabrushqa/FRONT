@@ -3,9 +3,14 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import SupervisorRiskOverviewPage from './SupervisorRiskOverviewPage';
 
 const getRiskOverviewMock = vi.fn();
+const downloadExcelMock = vi.fn();
 
 vi.mock('../../services/supervisorApi', () => ({
   getRiskOverview: (...args: unknown[]) => getRiskOverviewMock(...args)
+}));
+
+vi.mock('../../../../core/excelExport', () => ({
+  downloadExcel: (...args: unknown[]) => downloadExcelMock(...args)
 }));
 
 function fullResponse(overrides: Partial<Record<string, unknown>> = {}) {
@@ -70,6 +75,7 @@ function fullResponse(overrides: Partial<Record<string, unknown>> = {}) {
 
 beforeEach(() => {
   getRiskOverviewMock.mockReset();
+  downloadExcelMock.mockReset().mockResolvedValue(undefined);
 });
 
 describe('SupervisorRiskOverviewPage', () => {
@@ -177,5 +183,28 @@ describe('SupervisorRiskOverviewPage', () => {
 
     await waitFor(() => expect(getRiskOverviewMock).toHaveBeenCalledTimes(1));
     expect(await screen.findByText('99')).toBeInTheDocument();
+  });
+
+  it("exporte les commercants analyses en Excel au clic sur \"Exporter en Excel\"", async () => {
+    getRiskOverviewMock.mockResolvedValue(fullResponse());
+    render(<SupervisorRiskOverviewPage />);
+
+    const button = await screen.findByRole('button', { name: 'Exporter en Excel' });
+    fireEvent.click(button);
+
+    await waitFor(() => expect(downloadExcelMock).toHaveBeenCalledTimes(1));
+    expect(downloadExcelMock.mock.calls[0][0]).toBe('risque-abandon-commercants');
+    expect(downloadExcelMock.mock.calls[0][3]).toHaveLength(3);
+  });
+
+  it("le bouton d'export est desactive tant que les donnees ne sont pas chargees", async () => {
+    let resolvePromise: (value: unknown) => void = () => {};
+    getRiskOverviewMock.mockReturnValue(new Promise((resolve) => { resolvePromise = resolve; }));
+
+    render(<SupervisorRiskOverviewPage />);
+    expect(screen.getByRole('button', { name: 'Exporter en Excel' })).toBeDisabled();
+
+    resolvePromise(fullResponse());
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Exporter en Excel' })).toBeEnabled());
   });
 });

@@ -106,6 +106,16 @@ describe('CommercantMesReclamationsPage', () => {
     expect(await screen.findByText('Téléchargement impossible pour la réclamation #1.')).toBeInTheDocument();
   });
 
+  it("affiche une erreur si l'ouverture de la fiche PDF échoue", async () => {
+    getMyReclamationsMock.mockResolvedValue([item({ idReclamation: 1 })]);
+    fetchMyReclamationPdfBlobMock.mockRejectedValue(new Error('503'));
+
+    render(<CommercantMesReclamationsPage />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Voir / Imprimer' }));
+
+    expect(await screen.findByText("Impossible d'ouvrir la fiche PDF de la réclamation #1.")).toBeInTheDocument();
+  });
+
   it('affiche une erreur si le chargement échoue', async () => {
     getMyReclamationsMock.mockRejectedValue(new Error('503'));
 

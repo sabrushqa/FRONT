@@ -133,6 +133,10 @@ describe('CommercantDashboard - verrouillage du workspace', () => {
     await waitFor(() => expect(screen.getByTestId('is-loading').textContent).toBe('false'));
     expect(screen.getByText('Infos PDV')).toBeInTheDocument();
     expect(screen.queryByText('Sous-commerçants')).toBeNull();
+    // Le chat/reclamations (backend deja scope au PDV du sous-commercant)
+    // doit etre accessible depuis la navigation, pas seulement par URL directe.
+    expect(screen.getByText('Réclamations')).toBeInTheDocument();
+    expect(screen.getByText('Mes réclamations')).toBeInTheDocument();
   });
 
   it('affiche le selecteur de profil pour une affiliation combinee', async () => {

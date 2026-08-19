@@ -17,6 +17,7 @@ const downloadSignedContractMock = vi.fn();
 const downloadFullDossierMock = vi.fn();
 const triggerBlobDownloadMock = vi.fn();
 const abandonAffiliationRequestMock = vi.fn();
+const saveCommercialDraftMock = vi.fn();
 
 vi.mock('../../../supervisor/services/supervisorApi', () => ({
   getAffiliationRequests: (...args: unknown[]) => getAffiliationRequestsMock(...args),
@@ -30,7 +31,8 @@ vi.mock('../../../supervisor/services/supervisorApi', () => ({
   downloadCommercialReport: (...args: unknown[]) => downloadCommercialReportMock(...args),
   downloadSignedContract: (...args: unknown[]) => downloadSignedContractMock(...args),
   downloadFullDossier: (...args: unknown[]) => downloadFullDossierMock(...args),
-  abandonAffiliationRequest: (...args: unknown[]) => abandonAffiliationRequestMock(...args)
+  abandonAffiliationRequest: (...args: unknown[]) => abandonAffiliationRequestMock(...args),
+  saveCommercialDraft: (...args: unknown[]) => saveCommercialDraftMock(...args)
 }));
 
 vi.mock('../../../../core/browserDownload', () => ({
@@ -61,6 +63,7 @@ beforeEach(() => {
   downloadFullDossierMock.mockReset();
   triggerBlobDownloadMock.mockReset();
   abandonAffiliationRequestMock.mockReset();
+  saveCommercialDraftMock.mockReset();
   window.sessionStorage.clear();
   useSessionStore.getState().clearSession();
 });
@@ -541,8 +544,89 @@ describe('CommercialDossierDetailPage', () => {
       </MemoryRouter>
     );
 
+    // Une prospection directe (COMMERCIAL_DIRECT) n'est pas une auto-affiliation :
+    // le bouton "Enregistrer brouillon" reste bien propose dans ce cas.
     await screen.findAllByText(/ACME SARL/);
     expect(screen.queryByRole('button', { name: 'Enregistrer le brouillon' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Enregistrer brouillon' })).toBeInTheDocument();
+  });
+
+  it('sauvegarde le brouillon en mode edition et recharge le dossier', async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'COMMERCIAL' })
+    );
+    getAffiliationRequestsMock.mockResolvedValue({
+      requests: [{
+        dossierId: 1, nomCommercant: 'ACME SARL', status: 'SOUMIS', typeAffiliation: 'E_COMMERCE',
+        origineCreation: 'COMMERCIAL_DIRECT', compteActif: false
+      }]
+    });
+    saveCommercialDraftMock.mockResolvedValue({ message: 'Brouillon enregistré.' });
+
+    render(
+      <MemoryRouter initialEntries={['/commercial/dossiers/1?mode=edit']}>
+        <Routes>
+          <Route path="/commercial/dossiers/:dossierId" element={<CommercialDossierDetailPage requestScope="auto" />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    await screen.findAllByText(/ACME SARL/);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer brouillon' }));
+
+    expect(await screen.findByText('Brouillon enregistré.')).toBeInTheDocument();
+    expect(saveCommercialDraftMock).toHaveBeenCalledWith(1, expect.objectContaining({ typeAffiliation: 'E_COMMERCE' }));
+  });
+
+  it('affiche une erreur si la sauvegarde du brouillon echoue', async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'COMMERCIAL' })
+    );
+    getAffiliationRequestsMock.mockResolvedValue({
+      requests: [{
+        dossierId: 1, nomCommercant: 'ACME SARL', status: 'SOUMIS', typeAffiliation: 'E_COMMERCE',
+        origineCreation: 'COMMERCIAL_DIRECT', compteActif: false
+      }]
+    });
+    saveCommercialDraftMock.mockRejectedValue({});
+
+    render(
+      <MemoryRouter initialEntries={['/commercial/dossiers/1?mode=edit']}>
+        <Routes>
+          <Route path="/commercial/dossiers/:dossierId" element={<CommercialDossierDetailPage requestScope="auto" />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    await screen.findAllByText(/ACME SARL/);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer brouillon' }));
+
+    expect(await screen.findByText("Impossible d'enregistrer le brouillon du dossier.")).toBeInTheDocument();
+  });
+
+  it("affiche une erreur si la generation du contrat echoue", async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'COMMERCIAL' })
+    );
+    getAffiliationRequestsMock.mockResolvedValue({
+      requests: [{
+        dossierId: 1, nomCommercant: 'ACME SARL', status: 'SOUMIS', typeAffiliation: 'E_COMMERCE',
+        origineCreation: 'COMMERCIAL_DIRECT', compteActif: false
+      }]
+    });
+    completeAffiliationRequestMock.mockRejectedValue({});
+
+    render(
+      <MemoryRouter initialEntries={['/commercial/dossiers/1?mode=edit']}>
+        <Routes>
+          <Route path="/commercial/dossiers/:dossierId" element={<CommercialDossierDetailPage requestScope="auto" />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    await screen.findAllByText(/ACME SARL/);
+    fireEvent.click(screen.getByRole('button', { name: /Générer le compte-rendu/ }));
+
+    expect(await screen.findByText('Impossible de générer le contrat du dossier.')).toBeInTheDocument();
   });
 
   it('un back office peut demander une correction avec un type de probleme et un motif renseignes', async () => {
@@ -695,5 +779,22 @@ describe('CommercialDossierDetailPage', () => {
 
     await vi.waitFor(() => expect(downloadCommercialReportMock).toHaveBeenCalledWith(1));
     expect(triggerBlobDownloadMock).toHaveBeenCalledWith(blob, `compte-rendu-1.pdf`);
+  });
+
+  it("affiche une erreur si la preparation de l'impression echoue", async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'COMMERCIAL' })
+    );
+    getAffiliationRequestsMock.mockResolvedValue({
+      requests: [{ dossierId: 1, nomCommercant: 'ACME SARL', status: 'SOUMIS', typeAffiliation: 'TPE' }]
+    });
+    downloadFullDossierMock.mockRejectedValue({});
+
+    renderPage('1');
+    await screen.findAllByText(/ACME SARL/);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Imprimer le dossier' }));
+
+    expect(await screen.findByText("Impossible de préparer le dossier pour l'impression.")).toBeInTheDocument();
   });
 });

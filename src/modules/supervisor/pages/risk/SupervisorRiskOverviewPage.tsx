@@ -7,6 +7,7 @@ import {
   SectorTpeUsageItem
 } from '../../services/supervisorApi';
 import { formatEnumLabel } from '../../services/supervisorUiUtils';
+import { downloadExcel } from '../../../../core/excelExport';
 import '../../../../styles/page.shared.scss';
 import '../../../../styles/supervisor-risk.scss';
 
@@ -168,19 +169,43 @@ export default function SupervisorRiskOverviewPage() {
   );
   const comparableSectors = sectorCanalGroups.filter((g) => g.tpe && g.ecommerce).length;
 
+  async function exportRisk() {
+    if (!data) return;
+    await downloadExcel(
+      'risque-abandon-commercants',
+      'Risque abandon',
+      [
+        { header: 'Commerçant', key: 'nom', value: (c: MerchantRiskItem) => c.nom },
+        { header: 'ID', key: 'id', value: (c: MerchantRiskItem) => c.commercantId },
+        { header: 'Secteur', key: 'secteur', value: (c: MerchantRiskItem) => c.secteur },
+        { header: 'Région', key: 'region', value: (c: MerchantRiskItem) => c.region },
+        { header: "Type d'affiliation", key: 'type', value: (c: MerchantRiskItem) => formatEnumLabel(c.typeAffiliation) },
+        { header: 'Score de risque (%)', key: 'score', value: (c: MerchantRiskItem) => c.scoreRisque },
+        { header: 'Niveau de risque', key: 'niveau', value: (c: MerchantRiskItem) => levelMeta(c.niveauRisque).label },
+        { header: 'Raisons', key: 'raisons', value: (c: MerchantRiskItem) => c.raisons.join(' ; ') || '—' },
+        { header: 'Action recommandée', key: 'action', value: (c: MerchantRiskItem) => c.actionRecommandee }
+      ],
+      data.commercants
+    );
+  }
+
   return (
     <div className="risk-page">
       <div className="risk-page-head">
-        <div>
-          <span className="risk-badge">IA · lana-merchant-intelligence</span>
-          <p>
-            Score de risque d'abandon calculé à partir de l'historique réel des transactions
-            (chiffre d'affaires, taux de refus, inactivité) — mis à jour à chaque chargement.
-          </p>
+        <div className="risk-page-head-text">
+          <h2>Risque d'abandon</h2>
+          <p>Commerçants classés par score de risque, à partir de leur historique réel de transactions.</p>
         </div>
-        <button type="button" className="btn-secondary" onClick={load} disabled={isLoading}>
-          Actualiser
-        </button>
+        <div className="risk-page-head-actions">
+          <button type="button" className="risk-export-btn" onClick={() => void exportRisk()} disabled={!data}>
+            <span className="material-icons" aria-hidden="true">grid_on</span>
+            Exporter en Excel
+          </button>
+          <button type="button" className="btn-secondary" onClick={load} disabled={isLoading}>
+            <span className="material-icons" aria-hidden="true">refresh</span>
+            Actualiser
+          </button>
+        </div>
       </div>
 
       {errorMessage && <div className="page-alert error">{errorMessage}</div>}
@@ -204,7 +229,7 @@ export default function SupervisorRiskOverviewPage() {
       {data && (
         <>
           <section className="risk-kpi-row">
-            <article className="risk-kpi">
+            <article className="risk-kpi analysed">
               <span>Commerçants analysés</span>
               <strong>{data.commercantsAnalyses}</strong>
             </article>
@@ -216,7 +241,7 @@ export default function SupervisorRiskOverviewPage() {
               <span>Risque moyen</span>
               <strong>{data.nombreRisqueMoyen}</strong>
             </article>
-            <article className="risk-kpi">
+            <article className="risk-kpi score">
               <span>Score moyen</span>
               <strong>{data.scoreMoyen}%</strong>
             </article>

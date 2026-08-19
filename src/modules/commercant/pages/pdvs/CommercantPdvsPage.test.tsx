@@ -52,6 +52,21 @@ describe('CommercantPdvsPage', () => {
     expect(screen.getByText('Jane Doe')).toBeInTheDocument();
   });
 
+  it('affiche le statut "Inactif" avec le ton visuel danger', () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({
+        utilisateurId: 1,
+        commercantId: 1,
+        role: 'COMMERCANT',
+        typeAffiliation: 'ENCAISSEMENT',
+        pdvs: [{ id: 1, nom: 'Boutique Fermee', statut: 'INACTIF' } as never]
+      })
+    );
+    render(<CommercantPdvsPage />);
+    const chip = screen.getByText('INACTIF');
+    expect(chip.className).toContain('tone-danger');
+  });
+
   it("masque l'affectation sous-commercant pour un sous-commercant connecte", () => {
     useSessionStore.getState().setSession(
       normalizeUserSessionResponse({

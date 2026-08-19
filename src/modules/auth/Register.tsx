@@ -1425,6 +1425,23 @@ export default function Register({ onBackToLogin }: RegisterProps) {
   );
 }
 
+const QUANTITY_FIELD_LIMITS: Partial<Record<FieldKey, number>> = {
+  nombrePointsVente: MAX_POINTS_VENTE,
+  nombreTpe: MAX_TPE,
+  nombreQrSoftpos: MAX_QR_SOFTPOS
+};
+
+// Sonar S3358 : extrait des ternaires imbriquées min/max ci-dessous — un seul
+// des champs "nombre..." est actif a la fois, donc une simple table suffit.
+function resolveNumberFieldMin(field: FieldConfig): number | undefined {
+  if (field.key in QUANTITY_FIELD_LIMITS) return 1;
+  return field.type === 'number' ? 0 : undefined;
+}
+
+function resolveNumberFieldMax(field: FieldConfig): number | undefined {
+  return QUANTITY_FIELD_LIMITS[field.key];
+}
+
 function FormField({
   field, value, invalid, required, disabled, note, onChange, onBlur
 }: {
@@ -1463,8 +1480,8 @@ function FormField({
             placeholder={field.placeholder}
             autoComplete={field.autocomplete ?? 'off'}
             inputMode={field.inputMode}
-            min={field.key === 'nombrePointsVente' || field.key === 'nombreTpe' || field.key === 'nombreQrSoftpos' ? 1 : field.type === 'number' ? 0 : undefined}
-            max={field.key === 'nombrePointsVente' ? MAX_POINTS_VENTE : field.key === 'nombreTpe' ? MAX_TPE : field.key === 'nombreQrSoftpos' ? MAX_QR_SOFTPOS : undefined}
+            min={resolveNumberFieldMin(field)}
+            max={resolveNumberFieldMax(field)}
             step={field.type === 'number' ? 1 : undefined}
             disabled={disabled}
             readOnly={field.readonly ?? false}

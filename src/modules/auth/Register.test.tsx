@@ -163,6 +163,44 @@ describe('Register', () => {
     expect(screen.getByText('Statuts')).toBeInTheDocument();
     expect(screen.getByText('PV de nomination')).toBeInTheDocument();
   });
+
+  it('propose "Nombre de SoftPOS" pour une affiliation SoftPOS et plafonne la saisie a 10', () => {
+    render(<Register />);
+    fillStepOne({ typeAffiliation: 'SoftPOS' });
+    fireEvent.click(screen.getByRole('button', { name: 'Continuer' }));
+
+    const quantityField = screen.getByLabelText(/^Nombre de SoftPOS/);
+    expect(quantityField).toBeInTheDocument();
+
+    fireEvent.change(quantityField, { target: { value: '25' } });
+    expect(quantityField).toHaveValue(10);
+  });
+
+  it('propose "Nombre de QR Code" (pas "SoftPOS") pour une affiliation QRCode', () => {
+    render(<Register />);
+    fillStepOne({ typeAffiliation: 'QRCode' });
+    fireEvent.click(screen.getByRole('button', { name: 'Continuer' }));
+
+    expect(screen.getByLabelText(/^Nombre de QR Code/)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^Nombre de SoftPOS/)).toBeNull();
+
+    fireEvent.change(screen.getByLabelText(/^Nombre de QR Code/), { target: { value: '25' } });
+    expect(screen.getByLabelText(/^Nombre de QR Code/)).toHaveValue(10);
+  });
+
+  it('efface le nombre QR/SoftPOS et le nombre de TPE en changeant de produit d\'encaissement (affiliation combinee)', () => {
+    render(<Register />);
+    fillStepOne({ typeAffiliation: 'EncaissementEcommerce' });
+    fireEvent.click(screen.getByRole('button', { name: 'Continuer' }));
+
+    fireEvent.change(screen.getByLabelText(/^Produit d'encaissement/), { target: { value: 'SoftPOS' } });
+    fireEvent.change(screen.getByLabelText(/^Nombre de SoftPOS/), { target: { value: '4' } });
+    expect(screen.getByLabelText(/^Nombre de SoftPOS/)).toHaveValue(4);
+
+    fireEvent.change(screen.getByLabelText(/^Produit d'encaissement/), { target: { value: 'TPE' } });
+    expect(screen.queryByLabelText(/^Nombre de SoftPOS/)).toBeNull();
+    expect(screen.getByLabelText(/^Nombre de TPE/)).toHaveValue(null);
+  });
 });
 
 describe('Register - etape 3 (documents, RIB et soumission)', () => {

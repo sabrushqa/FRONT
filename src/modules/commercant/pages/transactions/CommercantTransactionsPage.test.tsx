@@ -1,18 +1,37 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import CommercantTransactionsPage from './CommercantTransactionsPage';
 import { useSessionStore, normalizeUserSessionResponse } from '../../../../store/sessionStore';
 
 const downloadExcelMock = vi.fn();
+const downloadTransactionTicketMock = vi.fn();
+const triggerBlobDownloadMock = vi.fn();
+
 vi.mock('../../../../core/excelExport', () => ({
   downloadExcel: (...args: unknown[]) => downloadExcelMock(...args)
+}));
+
+vi.mock('../../services/commercantApi', () => ({
+  downloadTransactionTicket: (...args: unknown[]) => downloadTransactionTicketMock(...args)
+}));
+
+vi.mock('../../../../core/browserDownload', () => ({
+  triggerBlobDownload: (...args: unknown[]) => triggerBlobDownloadMock(...args)
 }));
 
 beforeEach(() => {
   window.sessionStorage.clear();
   useSessionStore.getState().clearSession();
   useSessionStore.getState().setActiveAffiliationProfile('ENCAISSEMENT');
-  downloadExcelMock.mockReset().mockResolvedValue(undefined);
+  downloadExcelMock.mockReset().mockImplementation(
+    async (_fileName: string, _sheet: string, columns: Array<{ value: (row: unknown) => unknown }>, rows: unknown[]) => {
+      // Execute chaque callback de colonne (comme le ferait le vrai downloadExcel
+      // en construisant les lignes du classeur) pour couvrir ces fonctions.
+      rows.forEach((row) => columns.forEach((col) => col.value(row)));
+    }
+  );
+  downloadTransactionTicketMock.mockReset();
+  triggerBlobDownloadMock.mockReset();
 });
 
 function setCombinedSessionWithTransactions() {
@@ -149,5 +168,85 @@ describe('CommercantTransactionsPage', () => {
     expect(screen.getByText('PDV actifs')).toBeInTheDocument();
     expect(screen.getByText('TPE utilisés')).toBeInTheDocument();
     expect(screen.queryByText('Sites e-commerce utilisés')).toBeNull();
+  });
+
+  it('telecharge le ticket de transaction pour une transaction approuvee', async () => {
+    setSessionWithTransactions();
+    const blob = new Blob(['pdf']);
+    downloadTransactionTicketMock.mockResolvedValue(blob);
+
+    render(<CommercantTransactionsPage />);
+    fireEvent.click(screen.getByRole('button', { name: /Ticket/ }));
+
+    await waitFor(() => expect(downloadTransactionTicketMock).toHaveBeenCalledWith(1));
+    expect(triggerBlobDownloadMock).toHaveBeenCalledWith(blob, 'ticket-1.pdf');
+    expect(screen.queryByText('Téléchargement du ticket impossible.')).toBeNull();
+  });
+
+  it('affiche une erreur si le telechargement du ticket echoue', async () => {
+    setSessionWithTransactions();
+    downloadTransactionTicketMock.mockRejectedValue(new Error('503'));
+
+    render(<CommercantTransactionsPage />);
+    fireEvent.click(screen.getByRole('button', { name: /Ticket/ }));
+
+    expect(await screen.findByText('Téléchargement du ticket impossible.')).toBeInTheDocument();
+  });
+
+  it("affiche une erreur si l'export Excel echoue", async () => {
+    setSessionWithTransactions();
+    downloadExcelMock.mockRejectedValue(new Error('503'));
+
+    render(<CommercantTransactionsPage />);
+    fireEvent.click(screen.getByRole('button', { name: /Excel/ }));
+
+    expect(await screen.findByText('Export Excel impossible.')).toBeInTheDocument();
+  });
+
+  it('filtre par canal quand plusieurs canaux sont presents, filtre par plage "Au" et efface les dates', () => {
+    // Compte non combine, mais dont les transactions couvrent deux canaux —
+    // cas limite ou le filtre Canal doit malgre tout s'afficher (showCanalFilter).
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({
+        utilisateurId: 1,
+        commercantId: 1,
+        role: 'COMMERCANT',
+        transactions: [
+          { id: 1, canal: 'TPE', dateTransaction: '2026-07-01', heureTransaction: '10:00', montant: 100, devise: 'MAD', statut: 'ACCEPTE', typePaiement: 'CB', tpe: 'TPE1', pdvId: 1, pdv: 'PDV1' },
+          { id: 2, canal: 'ECOMMERCE', dateTransaction: '2026-07-02', heureTransaction: '11:00', montant: 50, devise: 'MAD', statut: 'ACCEPTE', typePaiement: 'CB', tpe: 'boutique.ma', pdvId: null, pdv: '' }
+        ] as never
+      })
+    );
+    render(<CommercantTransactionsPage />);
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Canal' }), { target: { value: 'TPE' } });
+    expect(screen.getByText('#1')).toBeInTheDocument();
+    expect(screen.queryByText('#2')).toBeNull();
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Canal' }), { target: { value: '' } });
+    fireEvent.change(screen.getByLabelText('Au'), { target: { value: '2026-07-01' } });
+    expect(screen.getByText('#1')).toBeInTheDocument();
+    expect(screen.queryByText('#2')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Effacer les dates' }));
+    expect(screen.getByText('#1')).toBeInTheDocument();
+    expect(screen.getByText('#2')).toBeInTheDocument();
+  });
+
+  it('pagine la liste des transactions avec plus de 20 resultats', async () => {
+    const transactions = Array.from({ length: 25 }, (_, i) => ({
+      id: i + 1, dateTransaction: '2026-07-01', heureTransaction: '10:00', montant: 10, devise: 'MAD',
+      statut: 'ACCEPTE', typePaiement: 'CB', tpe: 'TPE1', pdvId: 1, pdv: 'PDV1'
+    }));
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'COMMERCANT', transactions: transactions as never })
+    );
+
+    render(<CommercantTransactionsPage />);
+    expect(screen.getByText('#1')).toBeInTheDocument();
+    expect(screen.queryByText('#21')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: '›' }));
+    expect(await screen.findByText('#21')).toBeInTheDocument();
   });
 });

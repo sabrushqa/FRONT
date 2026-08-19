@@ -6,6 +6,7 @@ import { useSessionStore, normalizeUserSessionResponse } from '../../../../store
 
 const createCommercialDraftMock = vi.fn();
 const getAffiliationRequestsMock = vi.fn();
+const apiPostMock = vi.fn();
 
 vi.mock('../../../supervisor/services/supervisorApi', () => ({
   createCommercialDraft: (...args: unknown[]) => createCommercialDraftMock(...args),
@@ -14,7 +15,7 @@ vi.mock('../../../supervisor/services/supervisorApi', () => ({
 }));
 
 vi.mock('../../../../core/api', () => ({
-  default: { get: vi.fn(), post: vi.fn() }
+  default: { get: vi.fn(), post: (...args: unknown[]) => apiPostMock(...args) }
 }));
 
 function renderPage() {
@@ -41,9 +42,22 @@ beforeEach(() => {
   createCommercialDraftMock.mockReset();
   getAffiliationRequestsMock.mockReset();
   getAffiliationRequestsMock.mockResolvedValue({ requests: [] });
+  apiPostMock.mockReset();
   window.sessionStorage.clear();
   useSessionStore.getState().clearSession();
 });
+
+function setCommercialSession() {
+  useSessionStore.getState().setSession(
+    normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'COMMERCIAL' })
+  );
+}
+
+function fillRequiredStepDonnees() {
+  fireEvent.change(screen.getByLabelText('Nom'), { target: { value: 'Doe' } });
+  fireEvent.change(screen.getByLabelText('Activité'), { target: { value: 'Commerce' } });
+  fireEvent.change(screen.getByLabelText('Secteur'), { target: { value: 'Alimentation' } });
+}
 
 describe('CommercialDossierCreatePage', () => {
   it("refuse l'acces pour un role non commercial", () => {
@@ -239,5 +253,116 @@ describe('CommercialDossierCreatePage - mode edition (continuer un brouillon)', 
     renderPage();
 
     expect(getAffiliationRequestsMock).not.toHaveBeenCalled();
+  });
+});
+
+
+function docFileInput(label: string): HTMLInputElement {
+  const title = screen.getAllByText(label).find((el) => el.className === 'document-title')!;
+  return title.closest('label')!.querySelector('input[type="file"]')!;
+}
+
+function ribTextInput(): HTMLInputElement {
+  const label = screen.getAllByText('RIB').find((el) => el.tagName === 'SPAN' && el.parentElement?.tagName === 'LABEL' && el.parentElement.className.includes('form-group'))!;
+  return label.closest('label')!.querySelector('input')! as HTMLInputElement;
+}
+
+describe('CommercialDossierCreatePage - documents et extraction RIB', () => {
+  it('extrait automatiquement le RIB depuis l\'IBAN quand le document RIB est deposé', async () => {
+    setCommercialSession();
+    apiPostMock.mockResolvedValue({ data: { ribExtraction: { iban: 'MA64011519000001205000534921' } } });
+
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: /Documents/ }));
+
+    const ribInput = docFileInput('RIB');
+    fireEvent.change(ribInput, { target: { files: [new File(['x'], 'rib.png', { type: 'image/png' })] } });
+
+    expect(await screen.findByText('RIB extrait automatiquement.')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('MA64011519000001205000534921')).toBeInTheDocument();
+  });
+
+  it('remplace le RIB deja saisi par le RIB extrait du nouveau document depose (le champ est reinitialise a chaque depot)', async () => {
+    setCommercialSession();
+    apiPostMock.mockResolvedValue({ data: { ribExtraction: { rib: '011519000001205000534921' } } });
+
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: /Documents/ }));
+    fireEvent.change(ribTextInput(), { target: { value: '999999999999999999999999' } });
+
+    const ribInput = docFileInput('RIB');
+    fireEvent.change(ribInput, { target: { files: [new File(['x'], 'rib.png', { type: 'image/png' })] } });
+
+    expect(await screen.findByText('RIB extrait automatiquement.')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('011519000001205000534921')).toBeInTheDocument();
+  });
+
+  it("indique que le RIB n'a pas ete extrait quand l'API ne retourne aucune donnee exploitable", async () => {
+    setCommercialSession();
+    apiPostMock.mockResolvedValue({ data: {} });
+
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: /Documents/ }));
+
+    const ribInput = docFileInput('RIB');
+    fireEvent.change(ribInput, { target: { files: [new File(['x'], 'rib.png', { type: 'image/png' })] } });
+
+    expect(await screen.findByText('Document importé. RIB non extrait automatiquement.')).toBeInTheDocument();
+  });
+
+  it("affiche un message si l'extraction RIB echoue (API indisponible)", async () => {
+    setCommercialSession();
+    apiPostMock.mockRejectedValue(new Error('503'));
+
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: /Documents/ }));
+
+    const ribInput = docFileInput('RIB');
+    fireEvent.change(ribInput, { target: { files: [new File(['x'], 'rib.png', { type: 'image/png' })] } });
+
+    expect(await screen.findByText('Document importé. Extraction RIB indisponible.')).toBeInTheDocument();
+  });
+
+  it("importe un document non-RIB sans appeler l'API de validation", async () => {
+    setCommercialSession();
+
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: /Documents/ }));
+
+    const cinInput = docFileInput('CIN');
+    fireEvent.change(cinInput, { target: { files: [new File(['x'], 'cin.pdf', { type: 'application/pdf' })] } });
+
+    expect(await screen.findByText('Document importé sans vérification automatique.')).toBeInTheDocument();
+    expect(apiPostMock).not.toHaveBeenCalled();
+  });
+
+  it('retire un document deja importe quand la selection de fichier est annulee', async () => {
+    setCommercialSession();
+
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: /Documents/ }));
+
+    const cinInput = docFileInput('CIN');
+    fireEvent.change(cinInput, { target: { files: [new File(['x'], 'cin.pdf', { type: 'application/pdf' })] } });
+    await screen.findByText('cin.pdf');
+
+    fireEvent.change(cinInput, { target: { files: [] } });
+
+    expect(screen.queryByText('cin.pdf')).toBeNull();
+    expect(screen.getAllByText('Aucun fichier').length).toBeGreaterThan(0);
+  });
+
+  it('rejette un fichier qui depasse la taille totale autorisee', async () => {
+    setCommercialSession();
+
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: /Documents/ }));
+
+    const oversized = new File([new Uint8Array(11 * 1024 * 1024)], 'gros.pdf', { type: 'application/pdf' });
+    const cinInput = docFileInput('CIN');
+    fireEvent.change(cinInput, { target: { files: [oversized] } });
+
+    expect(await screen.findByText(/dépasse/)).toBeInTheDocument();
+    expect(screen.queryByText('gros.pdf')).toBeNull();
   });
 });

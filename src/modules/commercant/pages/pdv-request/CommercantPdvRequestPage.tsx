@@ -45,6 +45,9 @@ const VILLES = ['Agadir','Al Hoceima','Azrou','Beni Mellal','Berkane','Berrechid
 const ENCAISSEMENT_PRODUCTS = [{ value:'TPE', label:'TPE' },{ value:'SOFTPOS', label:'SoftPOS' }];
 const PRODUCTS  = ENCAISSEMENT_PRODUCTS;
 const MAX_TPE = 10;
+// Meme plafond que MAX_TPE aujourd'hui, mais une constante dediee evite de
+// laisser croire que le champ SoftPOS/QR est borne par un maximum de TPE.
+const MAX_QR_SOFTPOS = 10;
 const CONNECT   = [{ value:'Fixe', label:'Fixe' },{ value:'Mobile', label:'Mobile' },{ value:'ADSL', label:'ADSL' },{ value:'4G5G', label:'4G/5G' },{ value:'Wifi', label:'WIFI' }];
 const EQUIP     = [{ value:'TPEAutonome', label:'TPE autonome' },{ value:'TPECentralise', label:'TPE centralisé' },{ value:'MonetiqueIntegree', label:'Monétique intégrée' }];
 const QRSOFTPOS = [{ value:'QRCode', label:'QR Code' },{ value:'SoftPOS', label:'SoftPOS' }];
@@ -63,6 +66,12 @@ function extractError(err: unknown): string {
   const e = err as { response?: { data?: { message?: string; error?: string } } };
   return e?.response?.data?.message || e?.response?.data?.error || 'Impossible d\'envoyer la demande.';
 }
+
+// Sonar S3776 : regroupe les champs obligatoires par produit (au lieu d'un
+// "if" separe par champ dans req() ci-dessous) pour rester sous la limite de
+// complexite cognitive tout en restant facile a etendre.
+const TPE_REQUIRED_FIELDS = new Set<keyof CommercantPdvProductRequest>(['nombreTpe', 'equipementTpe', 'connectiviteTpe']);
+const QR_SOFTPOS_REQUIRED_FIELDS = new Set<keyof CommercantPdvProductRequest>(['modeleQrSoftpos', 'nombreQrSoftpos']);
 
 export default function CommercantPdvRequestPage() {
   const { session } = useSessionStore();
@@ -211,7 +220,7 @@ export default function CommercantPdvRequestPage() {
       }
       if (key === 'nombreQrSoftpos') {
         let cleanValue = val.replace(/\D+/g, '');
-        if (Number.parseInt(cleanValue, 10) > MAX_TPE) cleanValue = String(MAX_TPE);
+        if (Number.parseInt(cleanValue, 10) > MAX_QR_SOFTPOS) cleanValue = String(MAX_QR_SOFTPOS);
         return { ...f, nombreQrSoftpos: cleanValue };
       }
       if (key === 'quartier') {
@@ -274,11 +283,8 @@ export default function CommercantPdvRequestPage() {
     if (useExistingPdv && ['nom','adresse','ville','telephone'].includes(key)) return false;
     if (useExistingPdv && key === 'existingPdvId') return !form.existingPdvId;
     if (['nom','adresse','ville','telephone','typeAffiliation'].includes(key)) return !String(form[key]).trim();
-    if (isTpe    && key === 'nombreTpe')         return !form.nombreTpe;
-    if (isTpe    && key === 'equipementTpe')     return !form.equipementTpe;
-    if (isTpe    && key === 'connectiviteTpe')   return !form.connectiviteTpe;
-    if (isQrSoft && key === 'modeleQrSoftpos')   return !form.modeleQrSoftpos;
-    if (isQrSoft && key === 'nombreQrSoftpos')   return !form.nombreQrSoftpos;
+    if (isTpe    && TPE_REQUIRED_FIELDS.has(key))        return !form[key];
+    if (isQrSoft && QR_SOFTPOS_REQUIRED_FIELDS.has(key)) return !form[key];
     return false;
   }
 
@@ -480,7 +486,7 @@ export default function CommercantPdvRequestPage() {
                   </label>
                   <label className={`co-field${req('nombreQrSoftpos') ? ' is-invalid' : ''}`}>
                     <span>Nombre *</span>
-                    <input type="number" min={1} max={MAX_TPE} value={form.nombreQrSoftpos} disabled={isSubmitting} onChange={(e) => setField('nombreQrSoftpos', e.target.value)} />
+                    <input type="number" min={1} max={MAX_QR_SOFTPOS} value={form.nombreQrSoftpos} disabled={isSubmitting} onChange={(e) => setField('nombreQrSoftpos', e.target.value)} />
                   </label>
                 </>
               )}

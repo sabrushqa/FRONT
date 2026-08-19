@@ -161,6 +161,13 @@ export default function CommercantDashboard() {
       { route: `${workspaceBaseRoute}/points-de-vente`, label: 'Infos PDV', icon: 'storefront', count: null, exact: true },
       { route: `${workspaceBaseRoute}/tpe`, label: 'Terminaux TPE', icon: 'devices', count: null, exact: true },
     ]),
+    // Absentes jusqu'ici de ce menu (omission, pas un choix metier — le
+    // backend (ChatbotProxyController/ReclamationController) accepte deja
+    // SOUS_COMMERCANT et scope correctement au PDV/TPE du sous-commerçant) :
+    // sans ces deux entrees, le chat et l'historique des reclamations
+    // n'etaient accessibles que par URL directe, jamais depuis la navigation.
+    { route: `${workspaceBaseRoute}/reclamations`, label: 'Réclamations', icon: 'report_problem', count: null, exact: true },
+    { route: `${workspaceBaseRoute}/mes-reclamations`, label: 'Mes réclamations', icon: 'fact_check', count: null, exact: true },
     { route: `${workspaceBaseRoute}/profil`, label: 'Profil', icon: 'person', count: null, exact: true },
   ] : isMerchantWorkspaceUnlocked ? [
     { route: `${workspaceBaseRoute}/dashboard`, label: 'Tableau de bord', icon: 'dashboard', count: null, exact: true },

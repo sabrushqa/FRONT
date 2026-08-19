@@ -11,3 +11,9 @@ dist/
 # Artefacts générés par les tests Playwright (tests/e2e)
 playwright-report/
 test-results/
+
+# Rapports générés à chaque run de tests / scan SonarQube — jamais du code,
+# ne doivent pas être versionnés (commités par erreur au départ, retirés du
+# suivi avec git rm -r --cached).
+coverage/
+.scannerwork/

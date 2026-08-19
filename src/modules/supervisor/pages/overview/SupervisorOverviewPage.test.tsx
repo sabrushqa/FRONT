@@ -41,7 +41,13 @@ beforeEach(() => {
   getAffiliationRequestsMock.mockReset().mockResolvedValue({ requests: [] });
   getPdvMapMock.mockReset().mockResolvedValue({ pdvs: [] });
   getTpeStockMock.mockReset().mockResolvedValue({ tpes: [] });
-  downloadExcelMock.mockReset().mockResolvedValue(undefined);
+  downloadExcelMock.mockReset().mockImplementation(
+    async (_fileName: string, _sheet: string, columns: Array<{ value: (row: unknown) => unknown }>, rows: unknown[]) => {
+      // Execute chaque callback de colonne (comme le ferait le vrai downloadExcel
+      // en construisant les lignes du classeur) pour couvrir ces fonctions.
+      rows.forEach((row) => columns.forEach((col) => col.value(row)));
+    }
+  );
   window.sessionStorage.clear();
   useSessionStore.getState().clearSession();
   invalidateSupervisorDecisionDataCache();
@@ -113,7 +119,7 @@ describe('SupervisorOverviewPage', () => {
 
     renderPage();
 
-    const button = await screen.findByRole('button', { name: 'Voir les dossiers' });
+    const button = await screen.findByRole('button', { name: /Voir les dossiers/ });
     // Ne doit pas lever d'erreur : la navigation est geree par react-router
     // (verifiee fonctionnellement par les tests de routage de App.tsx).
     expect(() => fireEvent.click(button)).not.toThrow();
