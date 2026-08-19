@@ -2,7 +2,10 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import ErrorBoundary from './ErrorBoundary';
 
-function Bomb() {
+// Type de retour explicite : sans lui, TS infere `() => void` (pas `never`)
+// pour une fonction qui ne fait que lever une erreur, et refuse de la
+// laisser servir de composant JSX.
+function Bomb(): never {
   throw new Error('boom');
 }
 

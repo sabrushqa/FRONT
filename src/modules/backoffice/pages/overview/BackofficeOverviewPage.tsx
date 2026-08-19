@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { useSessionStore } from '../../../../store/sessionStore';
 import { AffiliationRequestItem, getAffiliationRequests } from '../../../supervisor/services/supervisorApi';
-import { isHandledByCurrentBackOffice } from '../../../workspace/workspaceUtils';
+import { isHandledByCurrentBackOffice, needsManualAssignment } from '../../../workspace/workspaceUtils';
 import { ReclamationItem, getReclamations } from '../../services/reclamationsApi';
 import '../../../../styles/page.shared.scss';
 import '../../../../styles/backoffice-overview.scss';
@@ -191,19 +191,15 @@ export default function BackofficeOverviewPage() {
   // connecte (dossiers d'extension restreints a leur back-office proprietaire,
   // reste de la file partagee) : appliquer un filtre d'appartenance ici
   // masquerait a tort la quasi-totalite des dossiers a traiter.
-  // Dossiers dont le contrat est signe (ACCEPTE/CONTRAT_A_SIGNER) mais qui
-  // necessitent encore une affectation TPE manuelle par le BOA (tout type
-  // sauf E_COMMERCE pur — voir MerchantAccessService::workspaceUnlocked
-  // cote backend pour la meme regle). tpeDejaAffecte tient deja compte du
-  // stock Oracle (switch-monetique-service), pas seulement de la table
-  // locale.
+  // Dossiers dont le contrat est reellement SIGNE ET DEPOSE (ACCEPTE — pas
+  // CONTRAT_A_SIGNER, qui n'est que le contrat genere/envoye : voir la page
+  // dossier ou "Affecter un TPE" ne s'affiche qu'a ACCEPTE) et qui necessitent
+  // encore une affectation manuelle par le BOA : reference TPE/SoftPOS/QR,
+  // site e-commerce, ou les deux pour ENCAISSEMENT_ET_ECOMMERCE — meme
+  // predicat que la page "TPE a affecter" (needsManualAssignment), pour que
+  // ce compteur et cette liste soient toujours coherents.
   const tpeToAssignCount = useMemo(
-    () => requests.filter(
-      (r) =>
-        (r.status === 'ACCEPTE' || r.status === 'CONTRAT_A_SIGNER')
-        && r.typeAffiliation !== 'E_COMMERCE'
-        && !r.tpeDejaAffecte
-    ).length,
+    () => requests.filter(needsManualAssignment).length,
     [requests]
   );
 
@@ -426,12 +422,12 @@ export default function BackofficeOverviewPage() {
           className="page-alert warning bo-tpe-alert"
           role="button"
           tabIndex={0}
-          onClick={() => navigate('/backoffice/dossiers')}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate('/backoffice/dossiers'); }}
+          onClick={() => navigate('/backoffice/tpe-a-affecter')}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate('/backoffice/tpe-a-affecter'); }}
         >
           <strong>{tpeToAssignCount}</strong>{' '}
-          {tpeToAssignCount === 1 ? 'dossier a un TPE à affecter' : 'dossiers ont un TPE à affecter'} — contrat
-          signé, en attente d'affectation pour débloquer l'espace du commerçant.
+          {tpeToAssignCount === 1 ? 'dossier a une affectation en attente' : 'dossiers ont une affectation en attente'} — contrat
+          signé, TPE/SoftPOS/QR et/ou site e-commerce restant à affecter pour débloquer l'espace du commerçant.
         </div>
       )}
       {isLoading && (

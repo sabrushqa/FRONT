@@ -1,0 +1,71 @@
+:root {
+  --bo-blue-dark: #0b4778;
+}
+
+// 3 indicateurs seulement sur cette page — le stat-grid partage (page.shared.scss)
+// est pense pour 4 colonnes, ce qui laissait une case vide geante a droite.
+.tpe-to-assign-page .stat-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .tpe-to-assign-page .stat-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tpe-to-assign-page .status-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 5px 8px;
+  border: 1px solid #f0d3df;
+  border-radius: 999px;
+  background: #fcebf2;
+  color: #9d174d;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.tpe-to-assign-page .status-dot {
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 3px rgba(157, 23, 77, 0.09);
+}
+
+.tpe-to-assign-page .table-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 7px 10px 7px 12px;
+  border-color: #c5d9e7;
+  border-radius: 8px;
+  color: var(--bo-blue-dark);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.tpe-to-assign-page .table-action .material-icons {
+  font-size: 15px;
+  transition: transform 0.16s ease;
+}
+
+.tpe-to-assign-page .table-action:hover .material-icons {
+  transform: translateX(2px);
+}
+
+[data-theme='dark'] .tpe-to-assign-page .table-action {
+  color: #bcd6ec;
+}
+
+[data-theme='dark'] .tpe-to-assign-page .status-badge {
+  border-color: #5c2a3c;
+  background: #3a1c26;
+  color: #f2b8d1;
+}

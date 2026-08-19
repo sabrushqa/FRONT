@@ -203,6 +203,15 @@
   line-height: 1.4;
 }
 
+// Label court genere par le chatbot (voir BackofficeReclamationResponse::
+// resumeCourt) — tri visuel rapide au-dessus de la description complete.
+.resume-court {
+  font-weight: 800;
+  font-size: 11px;
+  color: var(--bo-blue-dark);
+  margin-bottom: 2px;
+}
+
 .prio-badge,
 .reclam-status,
 .type-badge {

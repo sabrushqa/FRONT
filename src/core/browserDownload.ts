@@ -8,7 +8,9 @@ function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(reader.error);
+    // Sonar S6671 : une promesse doit toujours etre rejetee avec un Error (pas
+    // un DOMException|null brut) - message reel preserve quand disponible.
+    reader.onerror = () => reject(new Error(reader.error?.message || 'Erreur de lecture du fichier.'));
     reader.readAsDataURL(blob);
   });
 }

@@ -122,9 +122,19 @@ export default defineConfig({
     setupFiles: './src/test/setup.ts',
     globals: true,
     css: true,
+    // tests/e2e/*.spec.ts sont des specs Playwright (test:e2e, autre binaire,
+    // autre workflow CI) : sans cette exclusion, Vitest les ramasse aussi via
+    // son pattern par defaut **/*.spec.ts et essaie de les executer avec le
+    // mauvais runner, ce qui les fait echouer systematiquement ("Playwright
+    // Test did not expect test() to be called here") et fait echouer tout
+    // "npm test" / le workflow CI frontend-tests.yml, alors que les 567 vrais
+    // tests unitaires/composants passent.
+    exclude: ['tests/e2e/**', 'node_modules/**'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'html'],
+      // 'lcov' en plus de text/html : lu par sonar-project.properties
+      // (sonar.javascript.lcov.reportPaths) pour la couverture SonarQube.
+      reporter: ['text', 'html', 'lcov'],
       include: ['src/**/*.{ts,tsx}'],
       exclude: ['src/**/*.d.ts', 'src/main.tsx', 'src/test/**']
     }

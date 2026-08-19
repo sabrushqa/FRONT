@@ -74,37 +74,26 @@ describe('CommercantSubCommercantsPage', () => {
     expect(screen.queryByText('Ajouter un sous-commerçant')).toBeNull();
   });
 
-  it('cree un sous-commercant via un canal e-commerce', async () => {
+  it("n'affiche pas le formulaire de creation pour un commercant e-commerce pur", () => {
     useSessionStore.getState().setSession(
       normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'COMMERCANT', typeAffiliation: 'E_COMMERCE' })
     );
-    createSubMerchantMock.mockResolvedValue({ id: 6, message: 'Compte créé', activationEmailSent: true, activationMessage: '' });
-
     render(<CommercantSubCommercantsPage />);
-    fireEvent.change(screen.getByLabelText('Canal *'), { target: { value: 'SITE_MARCHAND' } });
-    fireEvent.change(screen.getByLabelText('Prénom *'), { target: { value: 'Jane' } });
-    fireEvent.change(screen.getByLabelText('Nom *'), { target: { value: 'Doe' } });
-    fireEvent.change(screen.getByLabelText('E-mail *'), { target: { value: 'jane@doe.com' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Ajouter' }));
-
-    expect(await screen.findByText('Compte créé')).toBeInTheDocument();
-    expect(createSubMerchantMock).toHaveBeenCalledWith(
-      expect.objectContaining({ canalEcommerce: 'SITE_MARCHAND', prenom: 'Jane', nom: 'Doe', email: 'jane@doe.com' })
-    );
+    expect(screen.queryByLabelText('Canal *')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Ajouter' })).toBeNull();
+    expect(screen.getByText('Ajout de sous-commerçant indisponible')).toBeInTheDocument();
   });
 
-  it("bloque la creation e-commerce si aucun canal n'est selectionne", () => {
+  it("n'affiche pas le formulaire de creation dans l'espace e-commerce d'une affiliation combinee", () => {
     useSessionStore.getState().setSession(
-      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'COMMERCANT', typeAffiliation: 'E_COMMERCE' })
+      normalizeUserSessionResponse({
+        utilisateurId: 1, commercantId: 1, role: 'COMMERCANT', typeAffiliation: 'ENCAISSEMENT_ET_ECOMMERCE'
+      })
     );
+    useSessionStore.getState().setActiveAffiliationProfile('E_COMMERCE');
     render(<CommercantSubCommercantsPage />);
-    fireEvent.change(screen.getByLabelText('Prénom *'), { target: { value: 'Jane' } });
-    fireEvent.change(screen.getByLabelText('Nom *'), { target: { value: 'Doe' } });
-    fireEvent.change(screen.getByLabelText('E-mail *'), { target: { value: 'jane@doe.com' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Ajouter' }));
-
-    expect(screen.getByText('Sélectionnez un canal (site marchand ou application mobile).')).toBeInTheDocument();
-    expect(createSubMerchantMock).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: 'Ajouter' })).toBeNull();
+    expect(screen.getByText('Ajout de sous-commerçant indisponible')).toBeInTheDocument();
   });
 
   it('deplace un sous-commercant vers un autre PDV disponible', async () => {

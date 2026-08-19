@@ -9,16 +9,19 @@ const reviewAffiliationRequestMock = vi.fn();
 const downloadAffiliationDocumentMock = vi.fn();
 const downloadFullDossierMock = vi.fn();
 const triggerBlobDownloadMock = vi.fn();
+const forwardAffiliationToBackOfficeMock = vi.fn();
+const downloadGeneratedContractMock = vi.fn();
+const downloadSignedContractMock = vi.fn();
 
 vi.mock('../../services/supervisorApi', () => ({
   getAffiliationRequests: (...args: unknown[]) => getAffiliationRequestsMock(...args),
   completeAffiliationRequest: vi.fn(),
   reviewAffiliationRequest: (...args: unknown[]) => reviewAffiliationRequestMock(...args),
-  forwardAffiliationToBackOffice: vi.fn(),
+  forwardAffiliationToBackOffice: (...args: unknown[]) => forwardAffiliationToBackOfficeMock(...args),
   downloadAffiliationDocument: (...args: unknown[]) => downloadAffiliationDocumentMock(...args),
   downloadFullDossier: (...args: unknown[]) => downloadFullDossierMock(...args),
-  downloadGeneratedContract: vi.fn(),
-  downloadSignedContract: vi.fn(),
+  downloadGeneratedContract: (...args: unknown[]) => downloadGeneratedContractMock(...args),
+  downloadSignedContract: (...args: unknown[]) => downloadSignedContractMock(...args),
   downloadCommercialReport: vi.fn()
 }));
 
@@ -42,6 +45,9 @@ beforeEach(() => {
   downloadAffiliationDocumentMock.mockReset();
   downloadFullDossierMock.mockReset();
   triggerBlobDownloadMock.mockReset();
+  forwardAffiliationToBackOfficeMock.mockReset();
+  downloadGeneratedContractMock.mockReset();
+  downloadSignedContractMock.mockReset();
   window.sessionStorage.clear();
   useSessionStore.getState().clearSession();
 });
@@ -59,6 +65,20 @@ describe('SupervisorAffiliationDetailPage', () => {
 
     const matches = await screen.findAllByText(/ACME SARL/);
     expect(matches.length).toBeGreaterThan(0);
+  });
+
+  it("affiche le nombre de demandes d'extension rattachees au dossier principal", async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'SUPERVISEUR' })
+    );
+    getAffiliationRequestsMock.mockResolvedValue({
+      requests: [{ dossierId: 1, nomCommercant: 'ACME SARL', status: 'SOUMIS', nombreDemandesExtention: 3 }]
+    });
+
+    renderPage('1');
+
+    expect(await screen.findByText(/Nombre de demandes d'extension/)).toBeInTheDocument();
+    expect(await screen.findByText('3')).toBeInTheDocument();
   });
 
   it("affiche un message si le dossier n'existe pas", async () => {
@@ -200,5 +220,118 @@ describe('SupervisorAffiliationDetailPage', () => {
 
     await vi.waitFor(() => expect(downloadAffiliationDocumentMock).toHaveBeenCalledWith(1, 9));
     expect(triggerBlobDownloadMock).toHaveBeenCalledWith(blob, 'cin.pdf');
+  });
+
+  it('un back office peut demander une correction avec un type de probleme et un motif renseignes', async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'BACK_OFFICE' })
+    );
+    getAffiliationRequestsMock.mockResolvedValue({
+      requests: [{ dossierId: 1, nomCommercant: 'ACME SARL', status: 'EN_ATTENTE_VALIDATION_BOA' }]
+    });
+    reviewAffiliationRequestMock.mockResolvedValue({ message: 'Dossier renvoyé pour correction.' });
+
+    renderPage('1');
+    await screen.findAllByText(/ACME SARL/);
+
+    fireEvent.click(screen.getByText('Type de problème').closest('section')!.querySelector('button')!);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Autre' }));
+    fireEvent.change(
+      screen.getByPlaceholderText('Expliquer clairement ce qui doit être corrigé avant renvoi au commercial...'),
+      { target: { value: 'Pièce illisible, merci de la reprendre.' } }
+    );
+
+    const correctionButton = screen.getByRole('button', { name: 'Demander correction' });
+    expect(correctionButton).not.toBeDisabled();
+    fireEvent.click(correctionButton);
+
+    expect(await screen.findByText('Dossier renvoyé pour correction.')).toBeInTheDocument();
+    expect(reviewAffiliationRequestMock).toHaveBeenCalledWith(1, {
+      decision: 'CORRECTION',
+      motifRefus: expect.stringContaining('Pièce illisible, merci de la reprendre.')
+    });
+  });
+
+  it("un commercial peut convertir un dossier accepte en affiliation (transmission au back office)", async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'COMMERCIAL' })
+    );
+    getAffiliationRequestsMock.mockResolvedValue({
+      requests: [{ dossierId: 1, nomCommercant: 'ACME SARL', status: 'ACCEPTE' }]
+    });
+    forwardAffiliationToBackOfficeMock.mockResolvedValue({ message: 'Dossier transmis au back office.' });
+
+    renderPage('1');
+    await screen.findAllByText(/ACME SARL/);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Convertir en affiliation' }));
+
+    expect(await screen.findByText('Dossier transmis au back office.')).toBeInTheDocument();
+    expect(forwardAffiliationToBackOfficeMock).toHaveBeenCalledWith(1);
+  });
+
+  it("affiche une erreur si la conversion en affiliation echoue", async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'COMMERCIAL' })
+    );
+    getAffiliationRequestsMock.mockResolvedValue({
+      requests: [{ dossierId: 1, nomCommercant: 'ACME SARL', status: 'ACCEPTE' }]
+    });
+    forwardAffiliationToBackOfficeMock.mockRejectedValue({});
+
+    renderPage('1');
+    await screen.findAllByText(/ACME SARL/);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Convertir en affiliation' }));
+
+    expect(await screen.findByText('Impossible de convertir ce dossier en affiliation.')).toBeInTheDocument();
+  });
+
+  it("telecharge le contrat genere et le contrat signe depuis l'onglet Contrat", async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'SUPERVISEUR' })
+    );
+    getAffiliationRequestsMock.mockResolvedValue({
+      requests: [{
+        dossierId: 1, nomCommercant: 'ACME SARL', status: 'ACTIF',
+        contractDisponible: true, contractFileName: 'contrat-1.pdf',
+        signedContractDisponible: true, signedContractFileName: 'contrat-1-signe.pdf'
+      }]
+    });
+    const contractBlob = new Blob(['contrat']);
+    const signedBlob = new Blob(['signe']);
+    downloadGeneratedContractMock.mockResolvedValue(contractBlob);
+    downloadSignedContractMock.mockResolvedValue(signedBlob);
+
+    renderPage('1');
+    await screen.findAllByText(/ACME SARL/);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Contrat' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Télécharger le contrat' }));
+
+    await vi.waitFor(() => expect(downloadGeneratedContractMock).toHaveBeenCalledWith(1));
+    expect(triggerBlobDownloadMock).toHaveBeenCalledWith(contractBlob, 'contrat-1.pdf');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Télécharger le contrat signé' }));
+
+    await vi.waitFor(() => expect(downloadSignedContractMock).toHaveBeenCalledWith(1));
+    expect(triggerBlobDownloadMock).toHaveBeenCalledWith(signedBlob, 'contrat-1-signe.pdf');
+  });
+
+  it("affiche une erreur si le telechargement du dossier complet echoue", async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'SUPERVISEUR' })
+    );
+    getAffiliationRequestsMock.mockResolvedValue({
+      requests: [{ dossierId: 1, nomCommercant: 'ACME SARL', status: 'ACTIF', origineCreation: 'AUTO_AFFILIATION', compteActif: true }]
+    });
+    downloadFullDossierMock.mockRejectedValue(new Error('503'));
+
+    renderPage('1');
+    await screen.findAllByText(/ACME SARL/);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Télécharger le dossier complet' }));
+
+    expect(await screen.findByText('503')).toBeInTheDocument();
   });
 });

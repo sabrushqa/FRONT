@@ -6,7 +6,20 @@
    ============================================================ */
 
 /* ---------- Variables ---------- */
+/* Fallback local pour --lc-gold/--lc-gold-hover/--lc-navy/--lc-navy-mid :
+   ce fichier est utilise par CommercialDossiersPage, rendu aussi bien sous
+   /commercial que /supervisor et /backoffice (listes "Dossier Auto-affiliation",
+   "Demande d'extension"...) — seul commercial-page.scss (charge uniquement
+   sous /commercial) definissait ces jetons en mode clair, les laissant
+   invalides ailleurs et rendant les titres (--navy-900/--text-primary, alias
+   de --lc-navy) illisibles sur fond clair. Memes valeurs que
+   commercial-page.scss pour un rendu identique partout. */
 :root {
+  --lc-gold:       #FFD224;
+  --lc-gold-hover: #E6BE00;
+  --lc-navy:       #0A1F44;
+  --lc-navy-mid:   #102A5C;
+
   --sky-50:  #FEF9E7;
   --sky-100: #FBEFC2;
   --sky-200: #EBD9A0;

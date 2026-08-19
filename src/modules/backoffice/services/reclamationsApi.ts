@@ -27,6 +27,10 @@ export interface ReclamationItem {
   backOfficeId: number | null;
   backOfficeUtilisateurId: number | null;
   dureeTraitementJours: number | null;
+  // Label court (2-4 mots, ex: "Ecran noir TPE") genere par le chatbot —
+  // voir BackofficeReclamationResponse.java::resumeCourt. Absent pour les
+  // reclamations qui ne passent pas par le chatbot.
+  resumeCourt: string | null;
 }
 
 export interface ReclamationStats {
@@ -97,5 +101,13 @@ export async function getReclamationDashboard(params?: { days?: number; type?: s
 
 export async function updateReclamationStatut(id: number, statut: string): Promise<ReclamationItem> {
   const res = await api.patch<ReclamationItem>(`${base}/${id}/statut`, { statut });
+  return res.data;
+}
+
+// Fiche PDF imprimable (une page, A4) d'une reclamation — voir
+// BackofficeReclamationController::pdf / ReclamationPdfService cote demo.
+// responseType 'blob' : reponse binaire (application/pdf), pas du JSON.
+export async function fetchReclamationPdfBlob(id: number): Promise<Blob> {
+  const res = await api.get<Blob>(`${base}/${id}/pdf`, { responseType: 'blob' });
   return res.data;
 }

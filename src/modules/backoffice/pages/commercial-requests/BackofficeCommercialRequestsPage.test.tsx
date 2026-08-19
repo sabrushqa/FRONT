@@ -61,6 +61,23 @@ describe('BackofficeCommercialRequestsPage', () => {
     expect(screen.getByText('Beta SARL')).toBeInTheDocument();
   });
 
+  it('filtre par region', async () => {
+    getAffiliationRequestsMock.mockResolvedValue({
+      requests: [
+        { dossierId: 1, origineCreation: 'COMMERCIAL_DIRECT', status: 'EN_ATTENTE_VALIDATION_BOA', nomCommercant: 'Casa SARL', region: 'Casablanca-Settat' },
+        { dossierId: 2, origineCreation: 'COMMERCIAL_DIRECT', status: 'EN_ATTENTE_VALIDATION_BOA', nomCommercant: 'Rabat SARL', region: 'Rabat-Salé-Kénitra' }
+      ]
+    });
+
+    renderPage();
+    await screen.findByText('Casa SARL');
+
+    fireEvent.change(screen.getByLabelText('Région'), { target: { value: 'Rabat-Salé-Kénitra' } });
+
+    expect(screen.queryByText('Casa SARL')).toBeNull();
+    expect(screen.getByText('Rabat SARL')).toBeInTheDocument();
+  });
+
   it("exclut les dossiers NOUVEAU_PDV (espace dedie) et navigue vers demandes-commerciales pour un dossier direct", async () => {
     // Cette page est reservee aux prospections commerciales directes : les
     // demandes d'extension (NOUVEAU_PDV) ont leur propre espace et ne doivent

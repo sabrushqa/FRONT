@@ -46,6 +46,10 @@ export function resolveAffiliationStatusKey(request: { status?: string }): Affil
     case 'ACTIF':
       return 'active';
     case 'ABANDONNE':
+    // Resilie = commercant qui etait actif puis est parti — issue negative
+    // terminale, comme un abandon, meme si le parcours ayant mene la est
+    // different (voir StatusDossier.RESILIE).
+    case 'RESILIE':
       return 'refused';
     default:
       return 'pending';
@@ -62,6 +66,42 @@ export function isNewPdvRequest(request: Pick<AffiliationRequestItem, 'origineCr
 
 export function isAutoAffiliationRequest(request: Pick<AffiliationRequestItem, 'origineCreation' | 'status'>): boolean {
   return !isCommercialDirectRequest(request) && !isNewPdvRequest(request);
+}
+
+/**
+ * Un dossier ACCEPTE (contrat signe/depose) a encore besoin d'une affectation
+ * manuelle par le BOA tant que le canal concerne n'est pas reellement
+ * interface : reference TPE/SoftPOS/QR pour tout type sauf E_COMMERCE, site
+ * e-commerce pour E_COMMERCE, et LES DEUX pour ENCAISSEMENT_ET_ECOMMERCE —
+ * miroir cote front de StaffAffiliationManagementService::
+ * notifyBackOfficeTpeAssignmentNeeded / resolvePendingAssignmentClause.
+ */
+export function needsManualAssignment(
+  request: Pick<AffiliationRequestItem, 'status' | 'typeAffiliation' | 'tpeDejaAffecte' | 'ecommerceSiteDejaAffecte'>
+): boolean {
+  if (request.status !== 'ACCEPTE') return false;
+  const needsTpe = request.typeAffiliation !== 'E_COMMERCE' && !request.tpeDejaAffecte;
+  const needsEcommerceSite =
+    (request.typeAffiliation === 'E_COMMERCE' || request.typeAffiliation === 'ENCAISSEMENT_ET_ECOMMERCE')
+    && !request.ecommerceSiteDejaAffecte;
+  return needsTpe || needsEcommerceSite;
+}
+
+/**
+ * Libelle court de ce qui reste a affecter, pour l'affichage (badge de ligne
+ * dans la page "TPE a affecter"). Retourne '' si rien n'est en attente.
+ */
+export function getPendingAssignmentLabel(
+  request: Pick<AffiliationRequestItem, 'status' | 'typeAffiliation' | 'tpeDejaAffecte' | 'ecommerceSiteDejaAffecte'>
+): string {
+  if (!needsManualAssignment(request)) return '';
+  const needsTpe = request.typeAffiliation !== 'E_COMMERCE' && !request.tpeDejaAffecte;
+  const needsEcommerceSite =
+    (request.typeAffiliation === 'E_COMMERCE' || request.typeAffiliation === 'ENCAISSEMENT_ET_ECOMMERCE')
+    && !request.ecommerceSiteDejaAffecte;
+  if (needsTpe && needsEcommerceSite) return 'TPE/SoftPOS/QR + Site e-commerce';
+  if (needsEcommerceSite) return 'Site e-commerce';
+  return 'TPE/SoftPOS/QR';
 }
 
 function normalizeRegionValue(value: string | null | undefined): string {

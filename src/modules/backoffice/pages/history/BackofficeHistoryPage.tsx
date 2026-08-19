@@ -11,7 +11,7 @@ import { isHandledByCurrentBackOffice } from '../../../workspace/workspaceUtils'
 import '../../../../styles/page.shared.scss';
 import '../../../../styles/backoffice-history.scss';
 
-type HistoryTypeFilter = 'all' | 'auto' | 'prospection';
+type HistoryTypeFilter = 'all' | 'auto' | 'prospection' | 'extension';
 type HistoryStatusFilter = 'all' | 'VALIDE' | 'ABANDONNE';
 
 function formatDate(value: string | null | undefined): string {
@@ -23,6 +23,10 @@ function formatDate(value: string | null | undefined): string {
 
 function isProspectionRequest(request: AffiliationRequestItem): boolean {
   return request.origineCreation === 'COMMERCIAL_DIRECT';
+}
+
+function isExtensionRequest(request: AffiliationRequestItem): boolean {
+  return request.origineCreation === 'NOUVEAU_PDV';
 }
 
 function isBackOfficeValidatedRequest(request: AffiliationRequestItem): boolean {
@@ -93,7 +97,11 @@ export default function BackofficeHistoryPage() {
     return requests.filter((request) => {
       const matchesType =
         typeFilter === 'all' ||
-        (typeFilter === 'prospection' ? isProspectionRequest(request) : !isProspectionRequest(request));
+        (typeFilter === 'prospection'
+          ? isProspectionRequest(request)
+          : typeFilter === 'extension'
+            ? isExtensionRequest(request)
+            : !isProspectionRequest(request) && !isExtensionRequest(request));
       const matchesStatus =
         statusFilter === 'all' ||
         (statusFilter === 'VALIDE' ? isBackOfficeValidatedRequest(request) : request.status === statusFilter);
@@ -109,8 +117,9 @@ export default function BackofficeHistoryPage() {
 
   const acceptedCount = requests.filter(isBackOfficeValidatedRequest).length;
   const abandonedCount = requests.filter((request) => request.status === 'ABANDONNE').length;
-  const autoCount = requests.filter((request) => !isProspectionRequest(request)).length;
+  const autoCount = requests.filter((request) => !isProspectionRequest(request) && !isExtensionRequest(request)).length;
   const prospectionCount = requests.filter(isProspectionRequest).length;
+  const extensionCount = requests.filter(isExtensionRequest).length;
 
   function clearFilters() {
     setSearchTerm('');
@@ -141,6 +150,10 @@ export default function BackofficeHistoryPage() {
           <span className="material-icons" aria-hidden="true">person_search</span>
           <div><strong>{isLoading ? '—' : prospectionCount}</strong><small>Prospection</small></div>
         </article>
+        <article className="history-stat history-stat--extension">
+          <span className="material-icons" aria-hidden="true">add_business</span>
+          <div><strong>{isLoading ? '—' : extensionCount}</strong><small>Extension</small></div>
+        </article>
       </section>
 
       <section className="filter-card" aria-labelledby="history-filters-title">
@@ -153,7 +166,7 @@ export default function BackofficeHistoryPage() {
             </div>
           </div>
           <button className="btn-secondary" type="button" onClick={clearFilters}>
-            <span className="material-icons" aria-hidden="true">restart_alt</span>
+            <span className="material-icons" aria-hidden="true">restart_alt</span>{' '}
             Réinitialiser
           </button>
         </div>
@@ -177,6 +190,7 @@ export default function BackofficeHistoryPage() {
               <option value="all">Toutes</option>
               <option value="auto">Auto-affiliation</option>
               <option value="prospection">Prospection</option>
+              <option value="extension">Extension</option>
             </select>
           </label>
           <label className="form-group">
@@ -248,7 +262,7 @@ export default function BackofficeHistoryPage() {
                     </td>
                     <td data-label="Actions">
                       <button className="btn-secondary table-action" type="button" onClick={() => navigate(resolveDetailRoute(item))}>
-                        Consulter
+                        Consulter{' '}
                         <span className="material-icons" aria-hidden="true">arrow_forward</span>
                       </button>
                     </td>

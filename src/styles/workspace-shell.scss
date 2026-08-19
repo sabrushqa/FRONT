@@ -274,6 +274,57 @@
   border-top: var(--bank-border);
 }
 
+/* Categorie de navigation repliable ("grand titre") — regroupe des items
+   consecutifs (ex: Dossiers = Auto-affiliation + Prospections, Equipe =
+   Back office + Commerciales + Commercants) pour reduire le nombre de
+   lignes visibles d'un coup dans le drawer. */
+.drawer-nav-group {
+  margin: 2px 0;
+}
+
+.drawer-nav-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: calc(100% - 24px);
+  margin: 10px 12px 2px;
+  padding: 6px 10px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--bank-ink-400);
+  cursor: pointer;
+  transition: color var(--bank-transition);
+
+  &:hover { color: var(--bank-navy-900); }
+}
+
+.drawer-nav-group-chevron {
+  font-size: 17px !important;
+  transition: transform .15s ease;
+}
+
+.drawer-nav-group.is-collapsed .drawer-nav-group-chevron {
+  transform: rotate(-90deg);
+}
+
+.drawer-nav-group-list {
+  overflow: hidden;
+  max-height: 640px;
+  transition: max-height .2s ease, opacity .15s ease;
+  opacity: 1;
+}
+
+.drawer-nav-group.is-collapsed .drawer-nav-group-list {
+  max-height: 0;
+  opacity: 0;
+}
+
 .drawer-nav-item {
   display: block;
   position: relative;
@@ -906,8 +957,16 @@
    OVERLAY (for mobile drawer)
    ============================================================ */
 .drawer-overlay {
+  // <button> (pas un <div>) pour l'accessibilite clavier native — reset des
+  // styles par defaut du navigateur (bordure, marge interne, apparence) pour
+  // garder le meme rendu qu'un simple calque de fond.
   position: fixed;
   inset: 0;
+  border: none;
+  margin: 0;
+  padding: 0;
+  appearance: none;
+  cursor: default;
   background: rgba(0, 0, 0, 0.4);
   z-index: 150;
 }
@@ -1023,6 +1082,12 @@
 
 [data-theme="dark"] .drawer-nav-heading {
   color: #3D4663;
+}
+
+[data-theme="dark"] .drawer-nav-group-head {
+  color: #3D4663;
+
+  &:hover { color: #F0F4FF; }
 }
 
 [data-theme="dark"] .drawer-nav-divider {

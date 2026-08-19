@@ -100,8 +100,10 @@ export default function CommercantTpesPage() {
               </div>
 
               <div className="tpe-info-grid">
-                <div><label>Connexion</label><span>{tpe.typeConnexion || '—'}</span></div>
-                <div><label>PDV actuel</label><span>{tpe.pdv || 'Non affecté'}</span></div>
+                {/* <span> plutot que <label> (Sonar S6853) : ce sont des legendes de
+                    lecture seule, sans champ de formulaire associe. */}
+                <div><span className="field-caption">Connexion</span><span>{tpe.typeConnexion || '—'}</span></div>
+                <div><span className="field-caption">PDV actuel</span><span>{tpe.pdv || 'Non affecté'}</span></div>
               </div>
 
               {messages[tpe.id] && <p className="tpe-feedback is-success">{messages[tpe.id]}</p>}

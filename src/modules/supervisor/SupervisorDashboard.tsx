@@ -12,7 +12,7 @@ import {
 } from './services/supervisorApi';
 import { currentSession } from '../auth/services/authApi';
 import { normalizeUserSessionResponse } from '../../store/sessionStore';
-import { resolveAffiliationStatusKey, isSupervisorRole, formatRelativeDate } from '../workspace/workspaceUtils';
+import { resolveAffiliationStatusKey, isSupervisorRole, formatRelativeDate, isNewPdvRequest } from '../workspace/workspaceUtils';
 import '../../styles/workspace-page.scss';
 import '../../styles/workspace-navbar.scss';
 import '../../styles/workspace-drawer-actions.scss';
@@ -32,6 +32,7 @@ export default function SupervisorDashboard() {
 
   const [counts, setCounts] = useState({
     affiliationRequests: 0,
+    extensionRequests: 0,
     affiliationPending: 0,
     affiliationProgress: 0,
     affiliationSent: 0,
@@ -52,27 +53,27 @@ export default function SupervisorDashboard() {
   const overviewRoute = `${workspaceBaseRoute}/overview`;
   const dossiersRoute = `${workspaceBaseRoute}/affiliation-requests`;
   const profileRoute = `${workspaceBaseRoute}/profil`;
-  const passwordActionRoute = canManageStaff ? `${workspaceBaseRoute}/security` : '/forgot-password';
 
   // Route metadata
   useEffect(() => {
     const metaMap: Record<string, { title: string; description: string }> = {
-      [`${workspaceBaseRoute}/overview`]: { title: 'Vue d\'ensemble', description: 'Suivez les indicateurs du poste commercial ou superviseur depuis un tableau de bord dédié.' },
-      [`${workspaceBaseRoute}/pipeline`]: { title: 'Pipeline des dossiers', description: 'Identifiez les étapes où les demandes sont bloquées.' },
+      [`${workspaceBaseRoute}/overview`]: { title: 'Vue d\'ensemble', description: 'Les chiffres clés et le pipeline des dossiers en un seul écran, pour décider vite.' },
       [`${workspaceBaseRoute}/activite-conversion`]: { title: 'Activité & Conversion', description: 'Conversion par origine, volume du mois et segmentation des demandes en un seul écran.' },
       [`${workspaceBaseRoute}/performance-equipes`]: { title: 'Performance des équipes', description: 'Commerciales et back office : assignations, validations, taux de conversion et délais de traitement.' },
       [`${workspaceBaseRoute}/affiliation-requests`]: { title: 'Demandes d\'affiliation', description: 'Travaillez la liste des dossiers dans un écran séparé puis ouvrez chaque dossier sur sa propre page.' },
+      [`${workspaceBaseRoute}/demande-extention`]: { title: 'Demandes d\'extension', description: 'Demandes de nouveaux points de vente ou canaux envoyées par des commerçants déjà affiliés, chacune reliée à son dossier principal.' },
       [`${workspaceBaseRoute}/prospections`]: { title: 'Prospections commerciales', description: 'Consultez toutes les demandes créées par les commerciales, filtrables par commerciale, région, statut et type d\'interaction.' },
       [`${workspaceBaseRoute}/back-offices`]: { title: 'Équipe back office', description: 'Visualisez et pilotez les comptes back office dans une liste professionnelle.' },
       [`${workspaceBaseRoute}/commercial`]: { title: 'Équipe commerciale', description: 'Suivez les comptes commerciaux avec un affichage Material plus lisible.' },
       [`${workspaceBaseRoute}/commercants`]: { title: 'Portefeuille commerçants', description: 'Retrouvez les commerçants actifs ou désactivés dans une page dédiée.' },
       [`${workspaceBaseRoute}/tpes`]: { title: 'Stock TPE', description: 'Gérez les références TPE, SoftPOS et QR Code.' },
+      [`${workspaceBaseRoute}/transactions`]: { title: 'Transactions', description: 'Consultez l\'historique des transactions de chaque commerçant et téléchargez leurs tickets.' },
+      [`${workspaceBaseRoute}/risque-abandon`]: { title: 'Risque d\'abandon', description: 'Score IA de risque d\'abandon par commerçant et par secteur, à partir de l\'historique réel des transactions.' },
       [`${workspaceBaseRoute}/reclamations`]: { title: 'Réclamations TPE', description: 'Consultez les réclamations reçues, traitées ou non, par région, BOA et type d\'affiliation.' },
       [`${workspaceBaseRoute}/geo-map`]: { title: 'Répartition géographique', description: 'Visualisez la répartition des commerçants par ville et région sur la carte du Maroc.' },
       [`${workspaceBaseRoute}/pdv-map`]: { title: 'Carte des points de vente', description: 'Zoomez sur une ville pour voir les points de vente et filtrez par ville, type d\'affiliation et type de commerçant.' },
       [`${workspaceBaseRoute}/back-offices/new`]: { title: 'Créer un back office', description: 'Préparez un compte back office et envoyez son e-mail d\'activation.' },
       [`${workspaceBaseRoute}/commercial/new`]: { title: 'Créer un commercial', description: 'Ajoutez un compte commercial depuis un formulaire séparé.' },
-      [`${workspaceBaseRoute}/security`]: { title: 'Sécurité du compte', description: 'Mettez à jour le mot de passe superviseur depuis une page distincte.' },
     };
     const path = location.pathname.split('?')[0];
     const meta = metaMap[path];
@@ -82,6 +83,9 @@ export default function SupervisorDashboard() {
     } else if (path.match(/\/affiliation-requests\/\d+/)) {
       setPageTitle('Dossier commerçant');
       setPageDescription('Consultez toutes les informations du dossier.');
+    } else if (path.match(/\/demande-extention\/\d+/)) {
+      setPageTitle('Demande d\'extension');
+      setPageDescription('Consultez la demande et retrouvez son dossier principal.');
     }
   }, [location.pathname]);
 
@@ -146,6 +150,7 @@ export default function SupervisorDashboard() {
 
       setCounts({
         affiliationRequests: requests.length,
+        extensionRequests: requests.filter(isNewPdvRequest).length,
         affiliationPending: statusCounts.pending,
         affiliationProgress: statusCounts.progress,
         affiliationSent: statusCounts.sent,
@@ -215,30 +220,34 @@ export default function SupervisorDashboard() {
     return [];
   })();
 
+  // "group" regroupe les items sous un grand titre de categorie repliable
+  // dans le drawer (voir WorkspaceDashboard) — Vue d'ensemble reste seule,
+  // hors categorie, en haut de la liste.
   const primaryDrawerItems: DrawerItem[] = [
     { route: overviewRoute, label: 'Vue d\'ensemble', icon: 'dashboard', count: null, exact: true },
     ...(canManageStaff ? [
-      { route: `${workspaceBaseRoute}/pipeline`, label: 'Pipeline dossiers', icon: 'account_tree', count: null, exact: true },
-      { route: `${workspaceBaseRoute}/activite-conversion`, label: 'Activité & Conversion', icon: 'published_with_changes', count: null, exact: true },
-      { route: `${workspaceBaseRoute}/performance-equipes`, label: 'Perf. équipes', icon: 'leaderboard', count: null, exact: true },
+      { route: `${workspaceBaseRoute}/activite-conversion`, label: 'Activité & Conversion', icon: 'published_with_changes', count: null, exact: true, group: 'Pilotage' },
+      { route: `${workspaceBaseRoute}/performance-equipes`, label: 'Perf. équipes', icon: 'leaderboard', count: null, exact: true, group: 'Pilotage' },
     ] : []),
-    ...(canManageAffiliationRequests ? [{ route: dossiersRoute, label: 'Demandes affiliation', icon: 'assignment', count: counts.affiliationRequests }] : []),
-    ...(canManageAffiliationRequests ? [{ route: `${workspaceBaseRoute}/prospections`, label: 'Prospections commerciales', icon: 'campaign', count: null, exact: true }] : []),
+    ...(canManageAffiliationRequests ? [{ route: dossiersRoute, label: 'Demandes affiliation', icon: 'assignment', count: counts.affiliationRequests, group: 'Dossiers' }] : []),
+    ...(canManageAffiliationRequests ? [{ route: `${workspaceBaseRoute}/demande-extention`, label: 'Demandes extension', icon: 'domain_add', count: counts.extensionRequests, exact: true, group: 'Dossiers' }] : []),
+    ...(canManageAffiliationRequests ? [{ route: `${workspaceBaseRoute}/prospections`, label: 'Prospections commerciales', icon: 'campaign', count: null, exact: true, group: 'Dossiers' }] : []),
     ...(canManageStaff ? [
-      { route: `${workspaceBaseRoute}/back-offices`, label: 'Back office', icon: 'inventory_2', count: null, exact: true },
-      { route: `${workspaceBaseRoute}/commercial`, label: 'Commerciales', icon: 'support_agent', count: null, exact: true },
-      { route: `${workspaceBaseRoute}/commercants`, label: 'Commerçants', icon: 'storefront', count: null, exact: true },
-      { route: `${workspaceBaseRoute}/tpes`, label: 'Stock TPE', icon: 'point_of_sale', count: null, exact: true },
-      { route: `${workspaceBaseRoute}/reclamations`, label: 'Réclamations TPE', icon: 'report_problem', count: null, exact: true },
-      { route: `${workspaceBaseRoute}/geo-map`, label: 'Répartition géographique', icon: 'map', count: null, exact: true },
-      { route: `${workspaceBaseRoute}/pdv-map`, label: 'Carte des points de vente', icon: 'pin_drop', count: null, exact: true },
+      { route: `${workspaceBaseRoute}/back-offices`, label: 'Back office', icon: 'inventory_2', count: null, exact: true, group: 'Équipe' },
+      { route: `${workspaceBaseRoute}/commercial`, label: 'Commerciales', icon: 'support_agent', count: null, exact: true, group: 'Équipe' },
+      { route: `${workspaceBaseRoute}/commercants`, label: 'Commerçants', icon: 'storefront', count: null, exact: true, group: 'Équipe' },
+      { route: `${workspaceBaseRoute}/tpes`, label: 'Stock TPE', icon: 'point_of_sale', count: null, exact: true, group: 'Exploitation' },
+      { route: `${workspaceBaseRoute}/transactions`, label: 'Transactions', icon: 'receipt_long', count: null, exact: true, group: 'Exploitation' },
+      { route: `${workspaceBaseRoute}/risque-abandon`, label: 'Risque d\'abandon', icon: 'insights', count: null, exact: true, group: 'Exploitation' },
+      { route: `${workspaceBaseRoute}/reclamations`, label: 'Réclamations TPE', icon: 'report_problem', count: null, exact: true, group: 'Exploitation' },
+      { route: `${workspaceBaseRoute}/geo-map`, label: 'Répartition géographique', icon: 'map', count: null, exact: true, group: 'Cartographie' },
+      { route: `${workspaceBaseRoute}/pdv-map`, label: 'Carte des points de vente', icon: 'pin_drop', count: null, exact: true, group: 'Cartographie' },
     ] : []),
   ];
 
   const secondaryDrawerItems: DrawerItem[] = canManageStaff ? [
     { route: `${workspaceBaseRoute}/back-offices/new`, label: 'Ajouter back office', icon: 'person_add', count: null, exact: true },
     { route: `${workspaceBaseRoute}/commercial/new`, label: 'Ajouter commerciale', icon: 'group_add', count: null, exact: true },
-    { route: `${workspaceBaseRoute}/security`, label: 'Sécurité', icon: 'lock', count: null, exact: true },
   ] : [];
 
   // A dossier detail page is shared by "Demandes affiliation" and "Prospections
@@ -263,7 +272,6 @@ export default function SupervisorDashboard() {
       isLoading={isLoading}
       pageTitle={pageTitle}
       pageDescription={pageDescription}
-      passwordActionRoute={passwordActionRoute}
       activeUrlOverride={activeUrlOverride}
     />
   );

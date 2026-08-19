@@ -56,6 +56,7 @@ export default function BackofficeCommercialRequestsPage() {
   const [commercantFilter, setCommercantFilter] = useState('');
   const [commercialFilter, setCommercialFilter] = useState('all');
   const [affiliationTypeFilter, setAffiliationTypeFilter] = useState('all');
+  const [regionFilter, setRegionFilter] = useState('all');
 
   useEffect(() => {
     let mounted = true;
@@ -105,6 +106,10 @@ export default function BackofficeCommercialRequestsPage() {
     () => buildOptions(requests.map((request) => request.typeAffiliation).filter(Boolean), 'Tous les types', formatEnumLabel),
     [requests]
   );
+  const regionOptions = useMemo(
+    () => buildOptions(requests.map((request) => request.region).filter(Boolean), 'Toutes les régions'),
+    [requests]
+  );
 
   const requestStats = useMemo(() => {
     const corrected = requests.filter((request) => request.nombreCorrections > 0).length;
@@ -120,20 +125,22 @@ export default function BackofficeCommercialRequestsPage() {
     return requests.filter((request) => {
       const matchesCommercial = commercialFilter === 'all' || resolveCommercialLabel(request) === commercialFilter;
       const matchesType = affiliationTypeFilter === 'all' || request.typeAffiliation === affiliationTypeFilter;
+      const matchesRegion = regionFilter === 'all' || request.region === regionFilter;
       const matchesCommercant =
         !normalizedCommercant ||
         [request.nomCommercant, request.email, request.telephone, String(request.dossierId)]
           .join(' ')
           .toLowerCase()
           .includes(normalizedCommercant);
-      return matchesCommercial && matchesType && matchesCommercant;
+      return matchesCommercial && matchesType && matchesRegion && matchesCommercant;
     });
-  }, [requests, commercantFilter, commercialFilter, affiliationTypeFilter]);
+  }, [requests, commercantFilter, commercialFilter, affiliationTypeFilter, regionFilter]);
 
   function clearFilters() {
     setCommercantFilter('');
     setCommercialFilter('all');
     setAffiliationTypeFilter('all');
+    setRegionFilter('all');
   }
 
   return (
@@ -163,7 +170,7 @@ export default function BackofficeCommercialRequestsPage() {
             </div>
           </div>
           <button className="btn-secondary" type="button" onClick={clearFilters}>
-            <span className="material-icons" aria-hidden="true">restart_alt</span>
+            <span className="material-icons" aria-hidden="true">restart_alt</span>{' '}
             Réinitialiser
           </button>
         </div>
@@ -195,6 +202,16 @@ export default function BackofficeCommercialRequestsPage() {
             <span>Type d'affiliation</span>
             <select className="form-select" value={affiliationTypeFilter} onChange={(event) => setAffiliationTypeFilter(event.target.value)}>
               {affiliationTypeOptions.map((option) => (
+                <option key={option.key} value={option.key}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="form-group">
+            <span>Région</span>
+            <select className="form-select" value={regionFilter} onChange={(event) => setRegionFilter(event.target.value)}>
+              {regionOptions.map((option) => (
                 <option key={option.key} value={option.key}>
                   {option.label}
                 </option>
@@ -273,7 +290,7 @@ export default function BackofficeCommercialRequestsPage() {
                     </td>
                     <td data-label="Actions">
                       <button className="btn-secondary table-action" type="button" onClick={() => navigate(resolveDetailRoute(item))}>
-                        Consulter
+                        Consulter{' '}
                         <span className="material-icons" aria-hidden="true">arrow_forward</span>
                       </button>
                     </td>

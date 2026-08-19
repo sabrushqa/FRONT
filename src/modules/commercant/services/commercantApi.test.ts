@@ -104,8 +104,9 @@ describe('workspace commercant', () => {
     const payload = {
       nom: 'Boutique', adresse: 'Rue 1', ville: 'Casablanca', quartier: 'Maarif', codePostal: '20000',
       telephone: '0600000000', email: 'x@x.com', typeAffiliation: 'TPE', nombreTpe: '1',
-      equipementTpe: '', connectiviteTpe: '', modeMiseADispositionTpe: '', modeleQrSoftpos: '',
-      modeServiceEcommerce: '', siteMarchandUrl: '', applicationMobile: '', latitude: null, longitude: null
+      equipementTpe: '', connectiviteTpe: '', modeMiseADispositionTpe: '', modeleQrSoftpos: '', nombreQrSoftpos: '',
+      modeServiceEcommerce: '', siteMarchandUrl: '', applicationMobile: '', latitude: null, longitude: null,
+      existingPdvId: null
     };
     postMock.mockResolvedValue({ data: { message: 'ok' } });
 

@@ -1,5 +1,9 @@
 .commercial-direct-page {
-  --direct-accent: var(--lc-gold);
+  /* Fallback explicite : --lc-gold n'est defini en mode clair que par
+     commercial-page.scss (charge sous /commercial uniquement) — cette page
+     est aussi rendue sous /supervisor (prospections commerciales), ou la
+     variable serait sinon invalide. */
+  --direct-accent: var(--lc-gold, #FFD224);
 }
 
 .direct-filter-panel {
@@ -96,7 +100,24 @@
   backdrop-filter: blur(2px);
 }
 
+// Bouton de fond invisible du modal (voir CommercialDirectRequestsPage.tsx) —
+// couvre tout .interaction-overlay (qui est position:fixed, donc son bloc
+// englobant pour ce positionnement absolu), sous le dialogue en z-index.
+.interaction-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border: none;
+  margin: 0;
+  padding: 0;
+  appearance: none;
+  cursor: default;
+  background: transparent;
+}
+
 .interaction-dialog {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   width: min(860px, 100%);

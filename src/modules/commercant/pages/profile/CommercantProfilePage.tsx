@@ -1,6 +1,7 @@
 import React from 'react';
-import { useSessionStore } from '../../../../store/sessionStore';
+import { useSessionStore, useEffectiveAffiliationType } from '../../../../store/sessionStore';
 import { toSafeHttpUrl } from '../../../../core/url';
+import '../../../../styles/page.shared.scss';
 import '../../../../styles/commercant-profile.scss';
 
 function formatEnum(value: string | null | undefined): string {
@@ -14,9 +15,15 @@ function formatEnum(value: string | null | undefined): string {
     .replace('Association Fondation', 'Association / Fondation');
 }
 
-function formatAffiliationFamily(value: string | null | undefined): string {
-  if (!value) return '—';
-  return value.toUpperCase() === 'E_COMMERCE' ? 'E-commerce' : 'Encaissement';
+// Le libelle de la famille d'affiliation ("Type d'affiliation" dans le
+// profil) doit suivre l'espace actif du portail (bascule Encaissement /
+// E-commerce, voir profileSwitcher dans CommercantDashboard.tsx), pas le
+// typeAffiliation brut du dossier — sinon un commercant ENCAISSEMENT_ET_
+// ECOMMERCE voit toujours "Encaissement" affiche meme en consultant son
+// espace e-commerce.
+function formatAffiliationFamily(rawTypeAffiliation: string | null | undefined, isEcommerce: boolean): string {
+  if (!rawTypeAffiliation) return '—';
+  return isEcommerce ? 'E-commerce' : 'Encaissement';
 }
 
 export default function CommercantProfilePage() {
@@ -32,6 +39,21 @@ export default function CommercantProfilePage() {
     .toUpperCase();
 
   const isActive = session?.active;
+  // Suit le profil actif (bascule ENCAISSEMENT / E-COMMERCE) pour les
+  // commerçants a affiliation combinee, sinon le type reel du dossier.
+  const isEcommerce = useEffectiveAffiliationType() === 'E_COMMERCE';
+  const hasCombinedAffiliation = session?.typeAffiliation === 'ENCAISSEMENT_ET_ECOMMERCE';
+  // session.summary.totalTransactions est un total BACKEND, calcule une seule
+  // fois pour toute la session (il ne connait pas l'espace actif du portail) :
+  // pour un commercant combine, il mélangeait toujours transactions TPE et
+  // e-commerce quel que soit l'espace consulte. Meme filtre par canal que
+  // CommercantTransactionsPage.tsx/CommercantOverviewPage.tsx pour n'afficher
+  // que les transactions du canal actif.
+  const totalTransactionsForActiveProfile = hasCombinedAffiliation
+    ? (session?.transactions ?? []).filter(
+        (t) => (t.canal ?? '').toUpperCase() === (isEcommerce ? 'ECOMMERCE' : 'TPE')
+      ).length
+    : session?.summary?.totalTransactions ?? 0;
 
   return (
     <div className="profile-page">
@@ -93,9 +115,9 @@ export default function CommercantProfilePage() {
             </div>
             <div className="profile-field">
               <span className="field-label">Type d'affiliation</span>
-              <span className="field-value highlight">{formatAffiliationFamily(profile?.typeAffiliation)}</span>
+              <span className="field-value highlight">{formatAffiliationFamily(profile?.typeAffiliation, isEcommerce)}</span>
             </div>
-            {profile?.typeAffiliation?.toUpperCase() === 'E_COMMERCE' && (
+            {isEcommerce && (
               <>
                 {profile?.siteMarchandUrl && (
                   <div className="profile-field">
@@ -145,23 +167,36 @@ export default function CommercantProfilePage() {
             <div className="profile-card-header">
               <h2>Résumé d'activité</h2>
             </div>
+            {session.donneesTransactionnellesIndisponibles && (
+              <div className="page-alert warning">
+                Le service switch-monetique-service était injoignable — les
+                chiffres ci-dessous peuvent être incomplets (sous-estimés).
+                Rechargez la page une fois le service revenu.
+              </div>
+            )}
             <div className="profile-stats-row">
               <div className="stat-block">
-                <strong>{session.summary.totalTransactions}</strong>
+                <strong>{totalTransactionsForActiveProfile}</strong>
                 <span>Transactions</span>
               </div>
-              <div className="stat-block">
-                <strong>{session.summary.totalPdvs}</strong>
-                <span>Points de vente</span>
-              </div>
-              <div className="stat-block">
-                <strong>{session.summary.totalTpes}</strong>
-                <span>Terminaux TPE</span>
-              </div>
-              <div className="stat-block">
-                <strong>{session.summary.totalSousCommercants}</strong>
-                <span>Sous-commerçants</span>
-              </div>
+              {!isEcommerce && (
+                <>
+                  <div className="stat-block">
+                    <strong>{session.summary.totalPdvs}</strong>
+                    <span>Points de vente</span>
+                  </div>
+                  <div className="stat-block">
+                    <strong>{session.summary.totalTpes}</strong>
+                    <span>Terminaux TPE</span>
+                  </div>
+                  {/* Sous-commercants n'existe que pour le canal encaissement
+                      (TPE) — cf. CommercantSubCommercantsPage.tsx. */}
+                  <div className="stat-block">
+                    <strong>{session.summary.totalSousCommercants}</strong>
+                    <span>Sous-commerçants</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}

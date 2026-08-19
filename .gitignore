@@ -7,3 +7,7 @@ dist/
 *.iml
 .DS_Store
 *.log
+
+# Artefacts générés par les tests Playwright (tests/e2e)
+playwright-report/
+test-results/

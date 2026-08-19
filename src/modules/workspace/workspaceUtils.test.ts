@@ -108,7 +108,11 @@ describe('isSameRegionAsCommercial', () => {
   });
 
   it('traite les valeurs absentes comme egales', () => {
-    expect(isSameRegionAsCommercial({ region: null }, undefined)).toBe(true);
+    // `region` est typee `string` (jamais null) cote AffiliationRequestItem,
+    // mais la fonction reste defensive a l'execution pour des donnees API
+    // malformees — `as never` simule volontairement cette valeur hors-type,
+    // meme idiome que isHandledByCurrentBackOffice plus bas dans ce fichier.
+    expect(isSameRegionAsCommercial({ region: null as never }, undefined)).toBe(true);
   });
 });
 

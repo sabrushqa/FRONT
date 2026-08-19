@@ -1,0 +1,68 @@
+# Genere a partir de ce template au demarrage du conteneur (mecanisme
+# officiel de l'image nginx: tout fichier /etc/nginx/templates/*.template
+# est passe par envsubst puis ecrit dans /etc/nginx/conf.d/*.conf avant
+# le lancement de nginx). Variables disponibles : $BACKEND_HOST, $BACKEND_PORT.
+
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # DNS interne de Docker (toujours 127.0.0.11 sur un reseau bridge
+    # utilisateur). Utilise ci-dessous avec une variable en proxy_pass
+    # pour resoudre "demo" a CHAQUE requete plutot qu'au demarrage de
+    # nginx : sinon, si le conteneur "demo" n'est pas encore leve quand
+    # nginx demarre (ordre non garanti en docker-compose), tout le
+    # conteneur frontend crashe au lieu de juste renvoyer une erreur
+    # ponctuelle le temps que le backend soit pret.
+    resolver 127.0.0.11 valid=10s;
+
+    # En-tetes de securite (doublent les balises <meta> de index.html,
+    # qui ne sont qu'un filet de secours : les vrais navigateurs
+    # appliquent les en-tetes HTTP, pas les balises meta equivalentes
+    # pour X-Frame-Options).
+    add_header X-Frame-Options "DENY" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+
+    # Assets Vite hashes dans le nom de fichier : cache long terme sans
+    # risque, un changement de contenu change le nom du fichier.
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # config.js / lana-config.js sont regeneres a chaque demarrage du
+    # conteneur (voir runtime-config.sh) : jamais de cache dessus, sinon
+    # un navigateur garde une vieille URL Keycloak en cache.
+    location = /config.js {
+        add_header Cache-Control "no-store";
+    }
+
+    location = /lana-config.js {
+        add_header Cache-Control "no-store";
+    }
+
+    # Le backend Spring Boot ("demo") est appele en relatif (/api/...)
+    # par le frontend, jamais en cross-origin : nginx fait office de
+    # reverse proxy interne, comme en dev avec le proxy Vite.
+    location /api/ {
+        set $backend_upstream "http://${BACKEND_HOST}:${BACKEND_PORT}";
+        proxy_pass $backend_upstream/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # SPA React Router : toute route inconnue retombe sur index.html,
+    # c'est React Router qui decide de la page a afficher cote client.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

@@ -32,6 +32,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
         }}>
           <p style={{ fontSize: 16, fontWeight: 600 }}>Une erreur est survenue lors du chargement de cette page.</p>
           <button
+            type="button"
             style={{ padding: '8px 20px', borderRadius: 6, border: '1px solid #e2e8f0', cursor: 'pointer', background: '#f8fafc' }}
             onClick={() => { this.setState({ hasError: false, error: null }); window.location.reload(); }}
           >

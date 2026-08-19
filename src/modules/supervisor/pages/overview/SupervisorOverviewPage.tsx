@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSupervisorDecisionData } from '../decision-dashboard/useSupervisorDecisionData';
 import { barChartOptions, doughnutChartOptions } from '../decision-dashboard/chartOptions';
 import { chartColors, isValidated } from '../decision-dashboard/supervisorDecisionMetrics';
+import { exportButtonProps } from '../decision-dashboard/chartExport';
 import { resolveAffiliationStatusKey } from '../../../workspace/workspaceUtils';
 import '../../../../styles/page.shared.scss';
 import '../../../../styles/supervisor-overview.scss';
@@ -18,6 +19,7 @@ export default function SupervisorOverviewPage() {
   const originChartRef = useRef<HTMLCanvasElement>(null);
   const teamChartRef = useRef<HTMLCanvasElement>(null);
   const inventoryChartRef = useRef<HTMLCanvasElement>(null);
+  const pipelineChartRef = useRef<HTMLCanvasElement>(null);
   const chartsRef = useRef<Chart[]>([]);
 
   function cardValue(label: string): number {
@@ -86,13 +88,30 @@ export default function SupervisorOverviewPage() {
       }));
     }
 
+    if (pipelineChartRef.current) {
+      chartsRef.current.push(new Chart(pipelineChartRef.current, {
+        type: 'bar',
+        data: {
+          labels: metrics.pipelinePoints.map((point) => point.label),
+          datasets: [{
+            label: 'Dossiers',
+            data: metrics.pipelinePoints.map((point) => point.value),
+            backgroundColor: chartColors.pink,
+            borderRadius: 8,
+            borderSkipped: false
+          }]
+        },
+        options: barChartOptions(false)
+      }));
+    }
+
     return () => {
       while (chartsRef.current.length) {
         chartsRef.current.pop()?.destroy();
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading, metrics.globalCards, metrics.originPoints]);
+  }, [isLoading, metrics.globalCards, metrics.originPoints, metrics.pipelinePoints]);
 
   return (
     <div className="page-grid bi-dashboard supervisor-decision-dashboard">
@@ -116,9 +135,22 @@ export default function SupervisorOverviewPage() {
               <span>Vue globale</span>
               <h2>Graphes de pilotage superviseur</h2>
             </div>
-            <button type="button" onClick={() => navigate('/supervisor/affiliation-requests')}>
-              Voir les dossiers
-            </button>
+            <div className="overview-command-actions">
+              <button
+                {...exportButtonProps('vue-ensemble-superviseur', 'Vue globale', [
+                  { header: 'Indicateur', key: 'label', value: (c: (typeof metrics.globalCards)[number]) => c.label },
+                  { header: 'Valeur', key: 'value', value: (c: (typeof metrics.globalCards)[number]) => c.value },
+                  { header: 'Détail', key: 'helper', value: (c: (typeof metrics.globalCards)[number]) => c.helper }
+                ], metrics.globalCards)}
+                type="button"
+              >
+                <span className="material-icons">download</span>{' '}
+                Excel
+              </button>
+              <button type="button" onClick={() => navigate('/supervisor/affiliation-requests')}>
+                Voir les dossiers
+              </button>
+            </div>
           </div>
 
           <div className="overview-mini-grid">
@@ -182,6 +214,19 @@ export default function SupervisorOverviewPage() {
               </div>
               <div className="decision-chart-wrap">
                 <canvas ref={inventoryChartRef} />
+              </div>
+            </article>
+
+            {/* Fusion de l'ancienne page "Pipeline dossiers" : meme source de
+                donnees (useSupervisorDecisionData) que le reste de cette vue,
+                inutile de garder une page dediee pour un seul graphique. */}
+            <article className="overview-chart-panel overview-chart-panel--main">
+              <div className="decision-card-title">
+                <span>Pipeline</span>
+                <h3>Où les dossiers sont bloqués, par statut</h3>
+              </div>
+              <div className="decision-chart-wrap">
+                <canvas ref={pipelineChartRef} />
               </div>
             </article>
           </div>

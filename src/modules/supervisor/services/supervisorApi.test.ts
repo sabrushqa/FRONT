@@ -113,6 +113,15 @@ describe('creations et actions avec payload', () => {
     expect(postMock).toHaveBeenCalledWith(`${BASE_SUPERVISOR}/tpes/TPE-000005/assign-commercant`, { dossierId: 99 });
   });
 
+  it("assignEcommerceSiteToCommercant n'envoie pas d'id (genere par switch-monetique-service)", async () => {
+    postMock.mockResolvedValue({ data: { success: true } });
+    await supervisorApi.assignEcommerceSiteToCommercant({ dossierId: 7, url: 'https://boutique.example.ma' });
+    expect(postMock).toHaveBeenCalledWith(
+      `${BASE_SUPERVISOR}/ecommerce-sites/assign-commercant`,
+      { dossierId: 7, url: 'https://boutique.example.ma' }
+    );
+  });
+
   it('assignAffiliationToCommerciale envoie le commercialeId dans le corps', async () => {
     postMock.mockResolvedValue({ data: { success: true } });
     await supervisorApi.assignAffiliationToCommerciale(10, { commercialeId: 3 });

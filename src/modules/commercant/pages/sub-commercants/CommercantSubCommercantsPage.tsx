@@ -27,8 +27,8 @@ export default function CommercantSubCommercantsPage() {
   const isSousCommercant = session?.role === 'SOUS_COMMERCANT';
   const isEcommerce = useEffectiveAffiliationType() === 'E_COMMERCE';
 
-  /* ---- Create form ---- */
-  const [form, setForm] = useState({ pdvId: '', canalEcommerce: '', prenom: '', nom: '', email: '', telephone: '' });
+  /* ---- Create form (canal encaissement/TPE uniquement) ---- */
+  const [form, setForm] = useState({ pdvId: '', prenom: '', nom: '', email: '', telephone: '' });
   const [isCreating, setIsCreating] = useState(false);
   const [createMsg, setCreateMsg] = useState('');
   const [createErr, setCreateErr] = useState('');
@@ -61,21 +61,15 @@ export default function CommercantSubCommercantsPage() {
       setCreateErr('Le prénom, le nom et l\'e-mail sont obligatoires.'); return;
     }
 
-    const basePayload = { prenom: form.prenom.trim(), nom: form.nom.trim(), email: form.email.trim(), telephone: form.telephone.trim() };
-
+    // La creation de sous-commercant n'est disponible que pour le canal
+    // encaissement (TPE) — ni pour un commercant e-commerce pur, ni pour le
+    // cote e-commerce d'un commercant a affiliation combinee (cf. le meme
+    // garde-fou cote backend, MerchantWorkspaceManagementService::createSubMerchant).
     if (isEcommerce) {
-      if (form.canalEcommerce !== 'SITE_MARCHAND' && form.canalEcommerce !== 'APPLICATION_MOBILE') {
-        setCreateErr('Sélectionnez un canal (site marchand ou application mobile).'); return;
-      }
-      setIsCreating(true);
-      try {
-        const res = await createSubMerchant({ ...basePayload, canalEcommerce: form.canalEcommerce });
-        setCreateMsg(res.message + (res.activationMessage ? ` ${res.activationMessage}` : ''));
-        setForm({ pdvId: '', canalEcommerce: '', prenom: '', nom: '', email: '', telephone: '' });
-      } catch (err) { setCreateErr(extractError(err)); }
-      finally { setIsCreating(false); }
       return;
     }
+
+    const basePayload = { prenom: form.prenom.trim(), nom: form.nom.trim(), email: form.email.trim(), telephone: form.telephone.trim() };
 
     const pdvId = Number.parseInt(form.pdvId, 10);
     if (!Number.isFinite(pdvId) || pdvId < 1) { setCreateErr('Sélectionnez un point de vente.'); return; }
@@ -83,7 +77,7 @@ export default function CommercantSubCommercantsPage() {
     try {
       const res = await createSubMerchant({ ...basePayload, pdvId });
       setCreateMsg(res.message + (res.activationMessage ? ` ${res.activationMessage}` : ''));
-      setForm({ pdvId: '', canalEcommerce: '', prenom: '', nom: '', email: '', telephone: '' });
+      setForm({ pdvId: '', prenom: '', nom: '', email: '', telephone: '' });
     } catch (err) { setCreateErr(extractError(err)); }
     finally { setIsCreating(false); }
   }
@@ -137,41 +131,42 @@ export default function CommercantSubCommercantsPage() {
         <div>
           <span className="co-page-kicker">Équipe</span>
           <h2>Sous-commerçants</h2>
-          <p>{isEcommerce ? 'Ajoutez et gérez les comptes rattachés à votre site marchand ou application mobile' : 'Ajoutez et gérez les comptes rattachés à vos points de vente'}</p>
+          <p>Ajoutez et gérez les comptes rattachés à vos points de vente</p>
         </div>
         <span className="co-badge">{sousCommercants.length} compte(s)</span>
       </div>
 
-      {/* Create form */}
-      {!isSousCommercant && (
+      {/* Create form — non disponible pour le canal e-commerce (ni un commercant
+          e-commerce pur, ni le cote e-commerce d'une affiliation combinee) */}
+      {!isSousCommercant && isEcommerce && (
+        <section className="co-section">
+          <div className="co-section-head">
+            <span className="material-icons">info</span>
+            <div>
+              <h3>Ajout de sous-commerçant indisponible</h3>
+              <p>La création de sous-commerçants n'est proposée que pour l'espace Encaissement (TPE).</p>
+            </div>
+          </div>
+        </section>
+      )}
+      {!isSousCommercant && !isEcommerce && (
         <section className="co-section">
           <div className="co-section-head">
             <span className="material-icons">person_add</span>
             <div>
               <h3>Ajouter un sous-commerçant</h3>
-              <p>{isEcommerce ? 'Le compte sera rattaché au canal sélectionné et un e-mail d\'activation sera envoyé.' : 'Le compte sera rattaché au point de vente sélectionné et un e-mail d\'activation sera envoyé.'}</p>
+              <p>Le compte sera rattaché au point de vente sélectionné et un e-mail d'activation sera envoyé.</p>
             </div>
           </div>
 
           <form className="co-form-grid" onSubmit={handleCreate}>
-            {isEcommerce ? (
-              <label className="co-field">
-                <span>Canal *</span>
-                <select value={form.canalEcommerce} disabled={isCreating} onChange={(e) => setForm((f) => ({ ...f, canalEcommerce: e.target.value }))}>
-                  <option value="">Sélectionner un canal</option>
-                  <option value="SITE_MARCHAND">Site marchand</option>
-                  <option value="APPLICATION_MOBILE">Application mobile</option>
-                </select>
-              </label>
-            ) : (
-              <label className="co-field">
-                <span>Point de vente *</span>
-                <select value={form.pdvId} disabled={isCreating} onChange={(e) => setForm((f) => ({ ...f, pdvId: e.target.value }))}>
-                  <option value="">Sélectionner un PDV</option>
-                  {assignablePdvs.map((p) => <option key={p.id} value={p.id}>{p.nom || `PDV #${p.id}`}</option>)}
-                </select>
-              </label>
-            )}
+            <label className="co-field">
+              <span>Point de vente *</span>
+              <select value={form.pdvId} disabled={isCreating} onChange={(e) => setForm((f) => ({ ...f, pdvId: e.target.value }))}>
+                <option value="">Sélectionner un PDV</option>
+                {assignablePdvs.map((p) => <option key={p.id} value={p.id}>{p.nom || `PDV #${p.id}`}</option>)}
+              </select>
+            </label>
             <label className="co-field">
               <span>Prénom *</span>
               <input type="text" value={form.prenom} disabled={isCreating} onChange={(e) => setForm((f) => ({ ...f, prenom: e.target.value }))} />
@@ -189,7 +184,7 @@ export default function CommercantSubCommercantsPage() {
               <input type="tel" value={form.telephone} disabled={isCreating} onChange={(e) => setForm((f) => ({ ...f, telephone: e.target.value }))} />
             </label>
             <div className="co-form-actions">
-              <button type="submit" className="co-btn-primary" disabled={isCreating || (!isEcommerce && !assignablePdvs.length)}>
+              <button type="submit" className="co-btn-primary" disabled={isCreating || !assignablePdvs.length}>
                 {isCreating ? 'Création…' : 'Ajouter'}
               </button>
             </div>

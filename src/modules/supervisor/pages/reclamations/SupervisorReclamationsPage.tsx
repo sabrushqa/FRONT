@@ -201,7 +201,7 @@ export default function SupervisorReclamationsPage() {
       {/* ── Filters ── */}
       <section className="reclam-filters">
         <label>
-          Recherche
+          Recherche{' '}
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -209,7 +209,7 @@ export default function SupervisorReclamationsPage() {
           />
         </label>
         <label>
-          Statut
+          Statut{' '}
           <select value={statutFilter} onChange={(e) => setStatutFilter(e.target.value as StatutFilter)}>
             <option value="all">Tous</option>
             <option value="EN_ATTENTE">En attente</option>
@@ -219,7 +219,7 @@ export default function SupervisorReclamationsPage() {
           </select>
         </label>
         <label>
-          Type de problème
+          Type de problème{' '}
           <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as TypeFilter)}>
             <option value="all">Tous</option>
             <option value="CONNECTIVITE">Connectivité</option>
@@ -231,7 +231,7 @@ export default function SupervisorReclamationsPage() {
           </select>
         </label>
         <label>
-          Région
+          Région{' '}
           <select value={regionFilter} onChange={(e) => setRegionFilter(e.target.value)}>
             <option value="all">Toutes</option>
             {regionOptions.map((region) => (
@@ -240,7 +240,7 @@ export default function SupervisorReclamationsPage() {
           </select>
         </label>
         <label>
-          Type d'affiliation
+          Type d'affiliation{' '}
           <select value={affiliationTypeFilter} onChange={(e) => setAffiliationTypeFilter(e.target.value)}>
             <option value="all">Tous</option>
             {affiliationTypeOptions.map((type) => (
@@ -249,7 +249,7 @@ export default function SupervisorReclamationsPage() {
           </select>
         </label>
         <label>
-          BOA (traitée par)
+          BOA (traitée par){' '}
           <select value={boaFilter} onChange={(e) => setBoaFilter(e.target.value)}>
             <option value="all">Tous</option>
             {boaOptions.map((boa) => (
@@ -276,7 +276,7 @@ export default function SupervisorReclamationsPage() {
 
         {isLoading && (
           <div className="reclam-loading">
-            <span className="page-loading-spinner" />
+            <span className="page-loading-spinner" />{' '}
             Chargement des réclamations...
           </div>
         )}
@@ -309,6 +309,7 @@ export default function SupervisorReclamationsPage() {
                     <td><PrioBadge priorite={item.priorite} /></td>
                     <td><span className="type-badge">{item.typeProbleme}</span></td>
                     <td>
+                      {item.resumeCourt && <div className="resume-court">{item.resumeCourt}</div>}
                       <strong>{item.description.slice(0, 60)}{item.description.length > 60 ? '…' : ''}</strong>
                       {item.referenceChat && <span>Réf: {item.referenceChat}</span>}
                     </td>

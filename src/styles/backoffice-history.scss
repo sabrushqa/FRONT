@@ -16,16 +16,19 @@
 
 .history-page .history-stats {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
+  // 6 cartes (Total, Acceptes, Abandonnes, Auto-affiliation, Prospection,
+  // Extension) : sur une seule ligne, sinon la derniere retombe seule sur
+  // une 2e rangee des que l'ecran n'est pas tres large.
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .history-page .history-stat {
   display: flex;
   align-items: center;
-  gap: 13px;
-  min-height: 78px;
-  padding: 14px 16px;
+  gap: 10px;
+  min-height: 72px;
+  padding: 12px 14px;
   border: 1px solid var(--bo-line);
   border-radius: 13px;
   background: var(--bo-surface);
@@ -35,13 +38,13 @@
 .history-page .history-stat > .material-icons {
   display: grid;
   flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   place-items: center;
-  border-radius: 11px;
+  border-radius: 10px;
   background: #edf6fd;
   color: var(--bo-blue);
-  font-size: 21px;
+  font-size: 18px;
 }
 
 .history-page .history-stat--accepted > .material-icons {
@@ -62,6 +65,11 @@
 .history-page .history-stat--prospection > .material-icons {
   background: #fff4e5;
   color: #b76108;
+}
+
+.history-page .history-stat--extension > .material-icons {
+  background: #e8f6fb;
+  color: #0f7ea3;
 }
 
 .history-page .history-stat div {

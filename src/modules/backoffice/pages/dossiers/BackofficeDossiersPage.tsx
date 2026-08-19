@@ -161,7 +161,7 @@ export default function BackofficeDossiersPage() {
             </div>
           </div>
           <button className="btn-secondary" type="button" onClick={clearFilters}>
-            <span className="material-icons" aria-hidden="true">restart_alt</span>
+            <span className="material-icons" aria-hidden="true">restart_alt</span>{' '}
             Réinitialiser
           </button>
         </div>
@@ -271,7 +271,7 @@ export default function BackofficeDossiersPage() {
                     </td>
                     <td data-label="Actions">
                       <button className="btn-secondary table-action" type="button" onClick={() => navigate(resolveDetailRoute(item))}>
-                        Consulter
+                        Consulter{' '}
                         <span className="material-icons" aria-hidden="true">arrow_forward</span>
                       </button>
                     </td>

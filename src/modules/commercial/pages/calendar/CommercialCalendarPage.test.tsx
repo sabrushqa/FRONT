@@ -208,4 +208,102 @@ describe('CommercialCalendarPage', () => {
       .toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Connecter Outlook' })).toBeDisabled();
   });
+
+  it("affiche un message d'annulation quand l'utilisateur refuse la connexion Google", async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'COMMERCIAL' })
+    );
+    window.history.replaceState({}, '', '/commercial/calendrier?error=access_denied&state=google.xyz');
+
+    renderPage();
+
+    expect(await screen.findByText('Connexion Google Calendar annulée.')).toBeInTheDocument();
+  });
+
+  it("affiche un message d'annulation quand l'utilisateur refuse la connexion Outlook", async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'COMMERCIAL' })
+    );
+    window.history.replaceState({}, '', '/commercial/calendrier?error=access_denied&state=microsoft.xyz');
+
+    renderPage();
+
+    expect(await screen.findByText('Connexion Outlook Calendar annulée.')).toBeInTheDocument();
+  });
+
+  it("affiche une erreur si la conversion du retour Google echoue", async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'COMMERCIAL' })
+    );
+    completeGoogleCalendarAuthorizationMock.mockRejectedValue(new Error('503'));
+    window.history.replaceState({}, '', '/commercial/calendrier?code=google-code&state=google.random-state');
+
+    renderPage();
+
+    expect(await screen.findByText('Impossible de connecter Google Calendar. Veuillez réessayer.')).toBeInTheDocument();
+  });
+
+  it('demarre la connexion Google Calendar et redirige vers son URL d\'autorisation', async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'COMMERCIAL' })
+    );
+    beginGoogleCalendarAuthorizationMock.mockResolvedValue({ authorizationUrl: 'https://accounts.google.com/oauth' });
+    const assignSpy = vi.fn();
+    const originalLocation = window.location;
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { ...originalLocation, assign: assignSpy }
+    });
+
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Connecter Google' }));
+
+    await vi.waitFor(() => expect(assignSpy).toHaveBeenCalledWith('https://accounts.google.com/oauth'));
+    Object.defineProperty(window, 'location', { configurable: true, value: originalLocation });
+  });
+
+  it("affiche une erreur si le demarrage de la connexion Google echoue", async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'COMMERCIAL' })
+    );
+    beginGoogleCalendarAuthorizationMock.mockRejectedValue(new Error('503'));
+
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Connecter Google' }));
+
+    expect(await screen.findByText('Impossible de démarrer la connexion Google Calendar.')).toBeInTheDocument();
+  });
+
+  it("affiche une erreur si le demarrage de la connexion Outlook echoue", async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'COMMERCIAL' })
+    );
+    beginMicrosoftCalendarAuthorizationMock.mockRejectedValue(new Error('503'));
+
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Connecter Outlook' }));
+
+    expect(await screen.findByText('Impossible de démarrer la connexion Outlook Calendar.')).toBeInTheDocument();
+  });
+
+  it('navigue au mois precedent, suivant, puis revient a aujourd\'hui', async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'COMMERCIAL' })
+    );
+
+    renderPage();
+    await screen.findByRole('button', { name: 'Connecter Google' });
+    const heading = document.querySelector('h1')!;
+    const initialLabel = heading.textContent;
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mois précédent' }));
+    expect(document.querySelector('h1')!.textContent).not.toBe(initialLabel);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mois suivant' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Mois suivant' }));
+    expect(document.querySelector('h1')!.textContent).not.toBe(initialLabel);
+
+    fireEvent.click(screen.getByRole('button', { name: "Aujourd'hui" }));
+    expect(document.querySelector('h1')!.textContent).toBe(initialLabel);
+  });
 });

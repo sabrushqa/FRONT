@@ -155,7 +155,7 @@ export default function SupervisorTpeStockPage() {
       {/* ── Filters ── */}
       <section className="tpe-filters">
         <label>
-          Recherche
+          Recherche{' '}
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
@@ -163,7 +163,7 @@ export default function SupervisorTpeStockPage() {
           />
         </label>
         <label>
-          Type
+          Type{' '}
           <select value={filterType} onChange={(event) => setFilterType(event.target.value)}>
             <option value="">Tous</option>
             <option value="TPE">TPE</option>
@@ -172,7 +172,7 @@ export default function SupervisorTpeStockPage() {
           </select>
         </label>
         <label>
-          Statut
+          Statut{' '}
           <select value={filterStatus} onChange={(event) => setFilterStatus(event.target.value)}>
             <option value="">Tous</option>
             <option value="DISPONIBLE">Disponibles</option>
@@ -200,7 +200,7 @@ export default function SupervisorTpeStockPage() {
 
         {isLoading && tpes.length === 0 && (
           <div className="tpe-loading">
-            <span className="page-loading-spinner" />
+            <span className="page-loading-spinner" />{' '}
             Chargement du stock TPE...
           </div>
         )}

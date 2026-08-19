@@ -178,7 +178,7 @@ export default function CommercantOverviewPage() {
   const tpeByPdvRef = useRef<HTMLCanvasElement>(null);
   const chartsRef   = useRef<Chart[]>([]);
 
-  const transactions = session?.transactions ?? [];
+  const allTransactions = session?.transactions ?? [];
   const tpes         = session?.tpes ?? [];
   const pdvs         = session?.pdvs ?? [];
   const summary      = session?.summary ?? { totalTransactions: 0, totalPdvs: 0, totalTpes: 0, totalSousCommercants: 0 };
@@ -186,6 +186,14 @@ export default function CommercantOverviewPage() {
   const hasCombinedAffiliation = session?.typeAffiliation === 'ENCAISSEMENT_ET_ECOMMERCE';
   // E-commerce merchants have no PDV/TPE — only the transactions chart applies.
   const isEcommerce = useEffectiveAffiliationType() === 'E_COMMERCE';
+  // Meme filtre que CommercantTransactionsPage.tsx : un commercant a affiliation
+  // combinee bascule d'espace (ENCAISSEMENT / E-COMMERCE). Sans ce filtre, le
+  // graphe "Transactions par mois" et le graphe "Par point de vente" de l'espace
+  // Encaissement TPE incluaient aussi les transactions e-commerce (et
+  // inversement) au lieu de ne montrer que les donnees du canal actif.
+  const transactions = hasCombinedAffiliation
+    ? allTransactions.filter((t) => (t.canal ?? '').toUpperCase() === (isEcommerce ? 'ECOMMERCE' : 'TPE'))
+    : allTransactions;
   const siteMarchandUrl = session?.profile?.siteMarchandUrl ?? '';
   const applicationMobile = session?.profile?.applicationMobile ?? '';
   const hasDashboardData = isEcommerce

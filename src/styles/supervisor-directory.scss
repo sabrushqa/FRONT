@@ -50,3 +50,9 @@
     margin: 0 14px 18px;
   }
 }
+
+.directory-actions-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}

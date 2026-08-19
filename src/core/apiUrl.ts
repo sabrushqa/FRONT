@@ -1,3 +1,5 @@
+import { stripLeadingAndTrailingSlashes } from './url';
+
 type LanaCashWindow = Window & {
   __LANACASH_CONFIG__?: {
     apiBaseUrl?: string;
@@ -19,7 +21,7 @@ function splitUrlParts(url: string): { origin: string; pathname: string } {
 }
 
 function trimSlashes(value: string): string {
-  return value.replace(/^\/+|\/+$/g, '');
+  return stripLeadingAndTrailingSlashes(value);
 }
 
 function shouldUseLocalBackendProxy(basePath: string): boolean {

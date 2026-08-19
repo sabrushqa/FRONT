@@ -23,6 +23,10 @@ export interface UserSessionResponse {
     totalTpes: number;
     totalSousCommercants: number;
   };
+  // true si switch-monetique-service etait injoignable pendant la
+  // construction de cette session : summary.totalTpes/totalTransactions et
+  // les listes tpes/transactions sont alors partielles, pas le vrai compte.
+  donneesTransactionnellesIndisponibles?: boolean;
   profile: {
     nom: string;
     email: string;
@@ -74,7 +78,8 @@ export interface UserSessionResponse {
     pdv: string;
   }>;
   transactions: Array<{
-    id: number;
+    id: string;
+    canal: string;
     dateTransaction: string;
     heureTransaction: string;
     montant: number | null;
@@ -112,7 +117,15 @@ const DEFAULT_PROFILE: UserSessionResponse['profile'] = {
 };
 
 export function normalizeUserSessionResponse(
-  session: Partial<UserSessionResponse> & Pick<UserSessionResponse, 'utilisateurId' | 'commercantId'>
+  session: Partial<Omit<UserSessionResponse, 'profile'>> &
+    Pick<UserSessionResponse, 'utilisateurId' | 'commercantId'> & {
+      // `Partial<UserSessionResponse>` ne rend optionnel que le champ
+      // `profile` lui-meme, pas ses proprietes internes (Partial n'est
+      // pas recursif) — alors que le corps de cette fonction fusionne
+      // deja `profile` avec DEFAULT_PROFILE et tolere un objet partiel
+      // en runtime. Le type doit refleter ce comportement reel.
+      profile?: Partial<UserSessionResponse['profile']>;
+    }
 ): UserSessionResponse {
   const profile = { ...DEFAULT_PROFILE, ...(session.profile ?? {}) };
   return {
@@ -134,6 +147,7 @@ export function normalizeUserSessionResponse(
     tokenType: session.tokenType ?? (session.accessToken ? 'Bearer' : null),
     tokenExpiresAt: session.tokenExpiresAt ?? null,
     summary: { ...DEFAULT_SUMMARY, ...(session.summary ?? {}) },
+    donneesTransactionnellesIndisponibles: session.donneesTransactionnellesIndisponibles ?? false,
     profile: {
       ...profile,
       nom: profile.nom || session.nom || '-',

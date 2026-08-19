@@ -1,4 +1,5 @@
 import Keycloak from 'keycloak-js';
+import { stripTrailingSlashes } from './url';
 
 type LanaCashWindow = Window & {
   __LANACASH_CONFIG__?: {
@@ -10,7 +11,7 @@ type LanaCashWindow = Window & {
 
 function resolveConfig(): { url: string; realm: string; clientId: string } {
   const config = (window as LanaCashWindow).__LANACASH_CONFIG__;
-  const url = (config?.keycloakUrl || 'http://localhost:8088').replace(/\/+$/, '');
+  const url = stripTrailingSlashes(config?.keycloakUrl || 'http://localhost:8088');
   return {
     url,
     realm: config?.keycloakRealm || 'PFE26',

@@ -17,6 +17,30 @@ describe('triggerBlobDownload', () => {
   });
 });
 
+describe('triggerBlobDownload — erreur de lecture', () => {
+  it('rejette avec un vrai Error (pas le DOMException|null brut de FileReader) — Sonar S6671', async () => {
+    class FailingFileReader {
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      error = { message: 'boom' } as DOMException;
+      readAsDataURL() {
+        queueMicrotask(() => this.onerror?.());
+      }
+    }
+    const OriginalFileReader = globalThis.FileReader;
+    // @ts-expect-error - substitution volontaire pour le test
+    globalThis.FileReader = FailingFileReader;
+
+    try {
+      const blob = new Blob(['contenu'], { type: 'text/plain' });
+      await expect(triggerBlobDownload(blob, 'rapport.txt')).rejects.toBeInstanceOf(Error);
+      await expect(triggerBlobDownload(blob, 'rapport.txt')).rejects.toThrow('boom');
+    } finally {
+      globalThis.FileReader = OriginalFileReader;
+    }
+  });
+});
+
 describe('openBlobInNewTab', () => {
   it('assigne une data: URL a la location de l\'onglet fourni', async () => {
     const fakeTab = { location: { href: '' } } as unknown as Window;

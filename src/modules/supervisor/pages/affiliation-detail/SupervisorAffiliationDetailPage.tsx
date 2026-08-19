@@ -181,7 +181,8 @@ export default function SupervisorAffiliationDetailPage() {
       { label: 'Secteur', value: firstMeaningful(requestItem.secteur) },
       { label: 'MCC', value: firstMeaningful(requestItem.mcc) },
       { label: 'Chaîne point de vente', value: firstMeaningful(requestItem.chainePointVente) },
-      { label: 'Nombre points de vente', value: firstMeaningful(requestItem.nombrePointsVente) }
+      { label: 'Nombre points de vente', value: firstMeaningful(requestItem.nombrePointsVente) },
+      { label: "Nombre de demandes d'extension", value: firstMeaningful(requestItem.nombreDemandesExtention) }
     ]);
   }, [requestItem]);
 
@@ -262,7 +263,10 @@ export default function SupervisorAffiliationDetailPage() {
       );
     }
     if (!isTpeRequest && !isEcommerceRequest) {
-      rows.push({ label: 'Modèle QR / SoftPOS', value: firstMeaningful(requestItem.modeleQrSoftpos) });
+      rows.push(
+        { label: 'Modèle QR / SoftPOS', value: firstMeaningful(requestItem.modeleQrSoftpos) },
+        { label: 'Nombre QR / SoftPOS', value: firstMeaningful(requestItem.nombreQrSoftpos) }
+      );
     }
     return filterRows(rows);
   }, [requestItem, isTpeRequest, isEcommerceRequest]);

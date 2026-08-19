@@ -9,7 +9,7 @@
 .pdv-req-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; padding:16px 18px 18px; }
 .pdv-req-grid .field-full { grid-column:1/-1; }
 .pdv-req-location-field { padding:0 18px 18px; }
-.pdv-req-location-field > label { display:block; margin-bottom:5px; font-size:10.5px; font-weight:700; color:var(--co-muted); text-transform:uppercase; letter-spacing:.06em; }
+.pdv-req-location-field > .field-caption { display:block; margin-bottom:5px; font-size:10.5px; font-weight:700; color:var(--co-muted); text-transform:uppercase; letter-spacing:.06em; }
 .product-selector { grid-column:1/-1; display:flex; flex-wrap:wrap; gap:8px; }
 .product-btn { padding:8px 18px; border:1.5px solid #E2E8F0; border-radius:999px; background:#fff; color:#64748B; font:inherit; font-size:12.5px; font-weight:600; cursor:pointer; transition:all .15s; }
 .product-btn:hover { border-color:#F97316; color:#1e40af; }

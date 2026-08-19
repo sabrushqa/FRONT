@@ -57,7 +57,7 @@ export default function BackofficeProfilePage() {
         {/* IDENTITY CARD */}
         <div className="cp-card">
           <div className="cp-card-title">
-            <span className="material-icons cp-card-icon">person</span>
+            <span className="material-icons cp-card-icon">person</span>{' '}
             Identité
           </div>
           <div className="cp-fields">
@@ -78,7 +78,7 @@ export default function BackofficeProfilePage() {
         {/* ACTIONS CARD */}
         <div className="cp-card">
           <div className="cp-card-title">
-            <span className="material-icons cp-card-icon">flash_on</span>
+            <span className="material-icons cp-card-icon">flash_on</span>{' '}
             Actions rapides
           </div>
           <div className="cp-actions">
@@ -112,7 +112,7 @@ export default function BackofficeProfilePage() {
             </Link>
           </div>
           <div className="cp-note">
-            <span className="material-icons">info</span>
+            <span className="material-icons">info</span>{' '}
             Les modifications sensibles passent par les parcours sécurisés du portail.
           </div>
         </div>

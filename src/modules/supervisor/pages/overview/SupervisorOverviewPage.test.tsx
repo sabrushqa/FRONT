@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import SupervisorOverviewPage from './SupervisorOverviewPage';
 import { useSessionStore, normalizeUserSessionResponse } from '../../../../store/sessionStore';
+import { invalidateSupervisorDecisionDataCache } from '../decision-dashboard/useSupervisorDecisionData';
 
 vi.mock('chart.js/auto', () => ({
   default: vi.fn().mockImplementation(function ChartMock() {
@@ -14,12 +15,17 @@ const getOverviewMock = vi.fn();
 const getAffiliationRequestsMock = vi.fn();
 const getPdvMapMock = vi.fn();
 const getTpeStockMock = vi.fn();
+const downloadExcelMock = vi.fn();
 
 vi.mock('../../services/supervisorApi', () => ({
   getOverview: (...args: unknown[]) => getOverviewMock(...args),
   getAffiliationRequests: (...args: unknown[]) => getAffiliationRequestsMock(...args),
   getPdvMap: (...args: unknown[]) => getPdvMapMock(...args),
   getTpeStock: (...args: unknown[]) => getTpeStockMock(...args)
+}));
+
+vi.mock('../../../../core/excelExport', () => ({
+  downloadExcel: (...args: unknown[]) => downloadExcelMock(...args)
 }));
 
 function renderPage() {
@@ -35,8 +41,10 @@ beforeEach(() => {
   getAffiliationRequestsMock.mockReset().mockResolvedValue({ requests: [] });
   getPdvMapMock.mockReset().mockResolvedValue({ pdvs: [] });
   getTpeStockMock.mockReset().mockResolvedValue({ tpes: [] });
+  downloadExcelMock.mockReset().mockResolvedValue(undefined);
   window.sessionStorage.clear();
   useSessionStore.getState().clearSession();
+  invalidateSupervisorDecisionDataCache();
 });
 
 describe('SupervisorOverviewPage', () => {
@@ -47,7 +55,7 @@ describe('SupervisorOverviewPage', () => {
 
     renderPage();
 
-    expect(await screen.findByText('Graphes de pilotage superviseur')).toBeInTheDocument();
+    expect(await screen.findByText('Total demandes')).toBeInTheDocument();
     expect(screen.getByText('Total demandes').closest('article')).toHaveTextContent('0');
     expect(screen.getByText('Dossiers en attente').closest('article')).toHaveTextContent('0');
     expect(screen.getByText('Taux de conversion').closest('article')).toHaveTextContent('0%');
@@ -67,7 +75,7 @@ describe('SupervisorOverviewPage', () => {
 
     renderPage();
 
-    await screen.findByText('Graphes de pilotage superviseur');
+    await screen.findByText('Total demandes');
     // "Total demandes" agrege bien auto-affiliation ET prospection directe.
     expect(screen.getByText('Total demandes').closest('article')).toHaveTextContent('3');
     // Les deux dossiers SOUMIS (auto + direct) sont "en attente".
@@ -94,7 +102,7 @@ describe('SupervisorOverviewPage', () => {
 
     renderPage();
 
-    await screen.findByText('Graphes de pilotage superviseur');
+    await screen.findByText('Total demandes');
     expect(screen.getByText('Parc TPE').closest('article')).toHaveTextContent('1');
   });
 
@@ -109,5 +117,36 @@ describe('SupervisorOverviewPage', () => {
     // Ne doit pas lever d'erreur : la navigation est geree par react-router
     // (verifiee fonctionnellement par les tests de routage de App.tsx).
     expect(() => fireEvent.click(button)).not.toThrow();
+  });
+
+  it('affiche le pipeline des dossiers (fusion avec l\'ancienne page Pipeline dossiers)', async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'SUPERVISEUR' })
+    );
+    getAffiliationRequestsMock.mockResolvedValue({
+      requests: [
+        { status: 'SOUMIS', origineCreation: 'AUTO' },
+        { status: 'ACCEPTE', origineCreation: 'AUTO' }
+      ]
+    });
+
+    renderPage();
+
+    await screen.findByText('Total demandes');
+    expect(screen.getByText('Où les dossiers sont bloqués, par statut')).toBeInTheDocument();
+  });
+
+  it('exporte la vue globale en Excel au clic sur le bouton dédié', async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'SUPERVISEUR' })
+    );
+
+    renderPage();
+
+    const button = await screen.findByRole('button', { name: /Excel/ });
+    fireEvent.click(button);
+
+    expect(downloadExcelMock).toHaveBeenCalledTimes(1);
+    expect(downloadExcelMock.mock.calls[0][0]).toBe('vue-ensemble-superviseur');
   });
 });

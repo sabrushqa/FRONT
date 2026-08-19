@@ -179,7 +179,7 @@ describe('BackofficeOverviewPage', () => {
     expect(sumDataset(weeklyReclamationsConfig, 'Matériel')).toBe(1);
   });
 
-  it("affiche l'alerte TPE a affecter pour un dossier ACCEPTE, non e-commerce, sans TPE affecte", async () => {
+  it("affiche l'alerte pour un dossier ACCEPTE, non e-commerce, sans TPE affecte", async () => {
     useSessionStore.getState().setSession(
       normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'BACK_OFFICE' })
     );
@@ -192,35 +192,60 @@ describe('BackofficeOverviewPage', () => {
     renderPage();
 
     expect(await screen.findByText('1')).toBeInTheDocument();
-    expect(screen.getByText(/dossier a un TPE à affecter/i)).toBeInTheDocument();
+    expect(screen.getByText(/dossier a une affectation en attente/i)).toBeInTheDocument();
   });
 
-  it("n'affiche pas l'alerte quand le dossier est deja e-commerce, deja affecte, ou pas encore accepte", async () => {
+  it("affiche l'alerte pour un dossier E_COMMERCE ACCEPTE dont le site n'est pas encore affecte", async () => {
+    // Depuis assignEcommerceSiteToCommercant, un dossier E_COMMERCE a lui
+    // aussi besoin d'une affectation manuelle par le BOA — il ne doit plus
+    // etre exclu de ce compteur (needsManualAssignment).
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'BACK_OFFICE' })
+    );
+    getAffiliationRequestsMock.mockResolvedValue({
+      requests: [
+        {
+          dossierId: 1, status: 'ACCEPTE', typeAffiliation: 'E_COMMERCE',
+          ecommerceSiteDejaAffecte: false, dateSoumission: new Date().toISOString()
+        }
+      ]
+    });
+
+    renderPage();
+
+    expect(await screen.findByText('1')).toBeInTheDocument();
+  });
+
+  it("n'affiche pas l'alerte quand tout est deja affecte, ou le contrat pas encore signe/depose", async () => {
     useSessionStore.getState().setSession(
       normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'BACK_OFFICE' })
     );
     const today = new Date().toISOString();
     getAffiliationRequestsMock.mockResolvedValue({
       requests: [
-        { dossierId: 1, status: 'ACCEPTE', typeAffiliation: 'E_COMMERCE', tpeDejaAffecte: false, dateSoumission: today },
+        { dossierId: 1, status: 'ACCEPTE', typeAffiliation: 'E_COMMERCE', ecommerceSiteDejaAffecte: true, dateSoumission: today },
         { dossierId: 2, status: 'ACCEPTE', typeAffiliation: 'TPE', tpeDejaAffecte: true, dateSoumission: today },
-        { dossierId: 3, status: 'SOUMIS', typeAffiliation: 'TPE', tpeDejaAffecte: false, dateSoumission: today }
+        { dossierId: 3, status: 'SOUMIS', typeAffiliation: 'TPE', tpeDejaAffecte: false, dateSoumission: today },
+        // CONTRAT_A_SIGNER = contrat genere/envoye, PAS encore signe/depose —
+        // ne doit pas declencher l'alerte (voir CommercialDossierDetailPage::
+        // canAssignTpe, meme regle stricte sur ACCEPTE).
+        { dossierId: 4, status: 'CONTRAT_A_SIGNER', typeAffiliation: 'TPE', tpeDejaAffecte: false, dateSoumission: today }
       ]
     });
 
     renderPage();
     await screen.findByText('Mes demandes à traiter par semaine');
 
-    expect(screen.queryByText(/TPE à affecter/i)).toBeNull();
+    expect(screen.queryByText(/affectation en attente/i)).toBeNull();
   });
 
-  it("navigue vers /backoffice/dossiers au clic sur l'alerte TPE a affecter", async () => {
+  it("navigue vers /backoffice/tpe-a-affecter au clic sur l'alerte", async () => {
     useSessionStore.getState().setSession(
       normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'BACK_OFFICE' })
     );
     getAffiliationRequestsMock.mockResolvedValue({
       requests: [
-        { dossierId: 1, status: 'CONTRAT_A_SIGNER', typeAffiliation: 'SOFTPOS', tpeDejaAffecte: false, dateSoumission: new Date().toISOString() }
+        { dossierId: 1, status: 'ACCEPTE', typeAffiliation: 'SOFTPOS', tpeDejaAffecte: false, dateSoumission: new Date().toISOString() }
       ]
     });
 
@@ -228,14 +253,14 @@ describe('BackofficeOverviewPage', () => {
       <MemoryRouter initialEntries={['/backoffice/overview']}>
         <Routes>
           <Route path="/backoffice/overview" element={<BackofficeOverviewPage />} />
-          <Route path="/backoffice/dossiers" element={<div>Page dossiers</div>} />
+          <Route path="/backoffice/tpe-a-affecter" element={<div>Page TPE à affecter</div>} />
         </Routes>
       </MemoryRouter>
     );
 
-    const alert = await screen.findByText(/dossier a un TPE à affecter/i);
+    const alert = await screen.findByText(/dossier a une affectation en attente/i);
     fireEvent.click(alert);
 
-    expect(await screen.findByText('Page dossiers')).toBeInTheDocument();
+    expect(await screen.findByText('Page TPE à affecter')).toBeInTheDocument();
   });
 });

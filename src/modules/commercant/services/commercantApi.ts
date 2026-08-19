@@ -53,6 +53,47 @@ export async function uploadSignedContract(file: File): Promise<CommercantContra
 }
 
 /* ============================================================
+   TRANSACTIONS API
+   ============================================================ */
+const transactionsBase = resolveBackendApiUrl('/api/commercant/transactions');
+
+export async function downloadTransactionTicket(transactionId: string): Promise<Blob> {
+  const res = await api.get(`${transactionsBase}/${encodeURIComponent(transactionId)}/ticket`, {
+    responseType: 'blob'
+  });
+  return res.data as Blob;
+}
+
+/* ============================================================
+   NOTIFICATIONS API
+   ============================================================ */
+export interface CommercantNotificationItem {
+  notificationId: number;
+  dossierId: number | null;
+  message: string;
+  type: string;
+  dateEnvoi: string | null;
+  read: boolean;
+}
+
+export interface CommercantNotificationOverview {
+  unreadCount: number;
+  notifications: CommercantNotificationItem[];
+}
+
+const notificationsBase = resolveBackendApiUrl('/api/notifications');
+
+export async function getMerchantNotifications(): Promise<CommercantNotificationOverview> {
+  const res = await api.get<CommercantNotificationOverview>(notificationsBase);
+  return res.data;
+}
+
+export async function markMerchantNotificationsAsRead(): Promise<CommercantNotificationOverview> {
+  const res = await api.post<CommercantNotificationOverview>(`${notificationsBase}/read-all`, {});
+  return res.data;
+}
+
+/* ============================================================
    WORKSPACE API
    ============================================================ */
 export interface CommercantSubMerchantCreateRequest {
@@ -105,11 +146,16 @@ export interface CommercantPdvProductRequest {
   connectiviteTpe: string;
   modeMiseADispositionTpe: string;
   modeleQrSoftpos: string;
+  nombreQrSoftpos: string;
   modeServiceEcommerce: string;
   siteMarchandUrl: string;
   applicationMobile: string;
   latitude: number | null;
   longitude: number | null;
+  // Rempli quand le commercant ajoute des terminaux sur un PDV qu'il possede
+  // deja, plutot que d'en ouvrir un nouveau — les champs nom/adresse/ville/
+  // telephone ci-dessus sont alors ignores cote backend.
+  existingPdvId: number | null;
 }
 
 export interface CommercantActionResponse {
@@ -171,5 +217,38 @@ export async function requestNewPdvProduct(
   payload: CommercantPdvProductRequest
 ): Promise<CommercantActionResponse> {
   const res = await api.post<CommercantActionResponse>(`${workspaceBase}/pdvs/product-requests`, payload);
+  return res.data;
+}
+
+// ── Réclamations du commerçant connecté ─────────────────────────────────
+// Demande explicite : voir ses réclamations non traitées (avancement) et
+// son historique, avec possibilité d'imprimer — voir ReclamationController
+// (endpoint /api/merchant/reclamations) et ReclamationPdfService côté demo.
+export interface MerchantReclamationItem {
+  idReclamation: number;
+  referenceChat: string | null;
+  typeProbleme: string;
+  description: string;
+  statut: string;
+  priorite: string;
+  dateCreation: string | null;
+  dateResolution: string | null;
+  commentaire: string | null;
+  tpeNumeroSerie: string | null;
+  tpeModele: string | null;
+  tpeReference: string | null;
+  // Label court genere par le chatbot — voir ReclamationResponse.java::resumeCourt.
+  resumeCourt: string | null;
+}
+
+const reclamationsBase = resolveBackendApiUrl('/api/merchant/reclamations');
+
+export async function getMyReclamations(): Promise<MerchantReclamationItem[]> {
+  const res = await api.get<MerchantReclamationItem[]>(reclamationsBase);
+  return res.data;
+}
+
+export async function fetchMyReclamationPdfBlob(id: number): Promise<Blob> {
+  const res = await api.get<Blob>(`${reclamationsBase}/${id}/pdf`, { responseType: 'blob' });
   return res.data;
 }

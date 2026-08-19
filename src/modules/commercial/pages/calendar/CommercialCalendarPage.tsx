@@ -484,7 +484,7 @@ export default function CommercialCalendarPage() {
           className={`type-filter${activeType === 'ALL' ? ' is-active' : ''}`}
           onClick={() => setActiveType('ALL')}
         >
-          <span className="tf-dot" style={{ background: '#64748B' }} />
+          <span className="tf-dot" style={{ background: '#64748B' }} />{' '}
           Tout
           <strong>{totalEvents}</strong>
         </button>

@@ -106,6 +106,7 @@ export default function QuartierCombobox({
       type="text"
       role="combobox"
       aria-expanded={isOpen}
+      aria-controls={`${id}-listbox`}
       aria-autocomplete="list"
       autoComplete="off"
       placeholder={entries.length > 0 ? 'Tapez pour chercher...' : (optional ? 'Optionnel' : label)}
@@ -123,7 +124,12 @@ export default function QuartierCombobox({
   );
 
   const dropdownEl = isOpen && suggestions.length > 0 && (
-    <ul className="quartier-combobox-list" role="listbox">
+    // Combobox personnalise avec filtrage en direct et mise en surbrillance
+    // (pas juste une liste statique) : un <select>/<datalist> natif ne
+    // permet pas ce comportement. Choix architectural assume, pas une
+    // regression a corriger a la volee ici. Faux "nouveau" signale par Sonar
+    // uniquement parce que la ligne a ete touchee pour ajouter l'id ci-dessus.
+    <ul id={`${id}-listbox`} className="quartier-combobox-list" role="listbox"> {/* NOSONAR typescript:S6819 */}
       {suggestions.map((entry, index) => (
         <li
           key={entry.quartier}

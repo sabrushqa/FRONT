@@ -12,19 +12,21 @@ const CommercantDashboard = lazy(() => import('./modules/commercant/CommercantDa
 
 // ── Supervisor pages (lazy) ───────────────────────────────────────────────────
 const SupervisorOverviewPage          = lazy(() => import('./modules/supervisor/pages/overview/SupervisorOverviewPage'));
-const SupervisorPipelinePage          = lazy(() => import('./modules/supervisor/pages/pipeline/SupervisorPipelinePage'));
 const SupervisorActivityConversionPage = lazy(() => import('./modules/supervisor/pages/activity-conversion/SupervisorActivityConversionPage'));
 const SupervisorTeamPerformancePage   = lazy(() => import('./modules/supervisor/pages/team-performance/SupervisorTeamPerformancePage'));
 const SupervisorAffiliationListPage   = lazy(() => import('./modules/supervisor/pages/affiliation-list/SupervisorAffiliationListPage'));
 const SupervisorAffiliationDetailPage = lazy(() => import('./modules/supervisor/pages/affiliation-detail/SupervisorAffiliationDetailPage'));
+const SupervisorDemandeExtentionPage  = lazy(() => import('./modules/supervisor/pages/demande-extention/SupervisorDemandeExtentionPage'));
+const SupervisorDemandeExtentionDetailPage = lazy(() => import('./modules/supervisor/pages/demande-extention-detail/SupervisorDemandeExtentionDetailPage'));
 const SupervisorDirectoryPage         = lazy(() => import('./modules/supervisor/pages/directory/SupervisorDirectoryPage'));
 const SupervisorStaffCreatePage       = lazy(() => import('./modules/supervisor/pages/staff-create/SupervisorStaffCreatePage'));
 const SupervisorTpeStockPage          = lazy(() => import('./modules/supervisor/pages/tpe-stock/SupervisorTpeStockPage'));
+const SupervisorTransactionsPage      = lazy(() => import('./modules/supervisor/pages/transactions/SupervisorTransactionsPage'));
+const SupervisorRiskOverviewPage      = lazy(() => import('./modules/supervisor/pages/risk/SupervisorRiskOverviewPage'));
 const SupervisorReclamationsPage      = lazy(() => import('./modules/supervisor/pages/reclamations/SupervisorReclamationsPage'));
 const SupervisorGeoMapPage            = lazy(() => import('./modules/supervisor/pages/geo-map/SupervisorGeoMapPage'));
 const SupervisorPdvMapPage            = lazy(() => import('./modules/supervisor/pages/pdv-map/SupervisorPdvMapPage'));
 const SupervisorProfilePage           = lazy(() => import('./modules/supervisor/pages/profile/SupervisorProfilePage'));
-const SupervisorSecurityPage          = lazy(() => import('./modules/supervisor/pages/security/SupervisorSecurityPage'));
 
 // ── Commercial pages (lazy) ───────────────────────────────────────────────────
 const CommercialOverviewPage       = lazy(() => import('./modules/commercial/pages/overview/CommercialOverviewPage'));
@@ -41,6 +43,7 @@ const BackofficeOverviewPage              = lazy(() => import('./modules/backoff
 const BackofficeDossiersPage              = lazy(() => import('./modules/backoffice/pages/dossiers/BackofficeDossiersPage'));
 const BackofficeDossierDetailPage         = lazy(() => import('./modules/backoffice/pages/dossier-detail/BackofficeDossierDetailPage'));
 const BackofficeDemandeExtentionPage      = lazy(() => import('./modules/backoffice/pages/demande-extention/BackofficeDemandeExtentionPage'));
+const BackofficeTpeToAssignPage           = lazy(() => import('./modules/backoffice/pages/tpe-to-assign/BackofficeTpeToAssignPage'));
 const BackofficeDemandeExtentionDetailPage= lazy(() => import('./modules/backoffice/pages/demande-extention-detail/BackofficeDemandeExtentionDetailPage'));
 const BackofficeHistoryPage               = lazy(() => import('./modules/backoffice/pages/history/BackofficeHistoryPage'));
 const BackofficeCommercialRequestsPage    = lazy(() => import('./modules/backoffice/pages/commercial-requests/BackofficeCommercialRequestsPage'));
@@ -59,6 +62,7 @@ const CommercantPdvRequestPage     = lazy(() => import('./modules/commercant/pag
 const CommercantSubCommercantsPage = lazy(() => import('./modules/commercant/pages/sub-commercants/CommercantSubCommercantsPage'));
 const CommercantTpesPage           = lazy(() => import('./modules/commercant/pages/tpes/CommercantTpesPage'));
 const CommercantReclamationsPage   = lazy(() => import('./modules/commercant/pages/reclamations/CommercantReclamationsPage'));
+const CommercantMesReclamationsPage = lazy(() => import('./modules/commercant/pages/mes-reclamations/CommercantMesReclamationsPage'));
 
 export default function App() {
   return (
@@ -84,7 +88,7 @@ export default function App() {
       >
         <Route index element={<Navigate to="overview" replace />} />
         <Route path="overview" element={<SupervisorOverviewPage />} />
-        <Route path="pipeline" element={<SupervisorPipelinePage />} />
+        <Route path="pipeline" element={<Navigate to="../overview" replace />} />
         <Route path="activite-conversion" element={<SupervisorActivityConversionPage />} />
         <Route path="performance-equipes" element={<SupervisorTeamPerformancePage />} />
         {/* Anciennes pages fusionnées — redirections pour ne pas casser d'anciens liens/marque-pages. */}
@@ -98,18 +102,21 @@ export default function App() {
         <Route path="top-auto-region" element={<Navigate to="../performance-equipes" replace />} />
         <Route path="affiliation-requests" element={<SupervisorAffiliationListPage />} />
         <Route path="affiliation-requests/:dossierId" element={<SupervisorAffiliationDetailPage />} />
+        <Route path="demande-extention" element={<SupervisorDemandeExtentionPage />} />
+        <Route path="demande-extention/:dossierId" element={<SupervisorDemandeExtentionDetailPage />} />
         <Route path="prospections" element={<CommercialDirectRequestsPage scope="supervisor" />} />
         <Route path="back-offices" element={<SupervisorDirectoryPage directoryType="backOffices" />} />
         <Route path="commercial" element={<SupervisorDirectoryPage directoryType="commerciales" />} />
         <Route path="commerciales" element={<Navigate to="../commercial" replace />} />
         <Route path="commercants" element={<SupervisorDirectoryPage directoryType="commercants" />} />
         <Route path="tpes" element={<SupervisorTpeStockPage />} />
+        <Route path="transactions" element={<SupervisorTransactionsPage />} />
+        <Route path="risque-abandon" element={<SupervisorRiskOverviewPage />} />
         <Route path="reclamations" element={<SupervisorReclamationsPage />} />
         <Route path="geo-map" element={<SupervisorGeoMapPage />} />
         <Route path="pdv-map" element={<SupervisorPdvMapPage />} />
         <Route path="back-offices/new" element={<SupervisorStaffCreatePage staffType="backOffice" />} />
         <Route path="commercial/new" element={<SupervisorStaffCreatePage staffType="commerciale" />} />
-        <Route path="security" element={<SupervisorSecurityPage />} />
         <Route path="profil" element={<SupervisorProfilePage />} />
         <Route path="*" element={<Navigate to="overview" replace />} />
       </Route>
@@ -157,6 +164,7 @@ export default function App() {
         <Route path="dossiers" element={<BackofficeDossiersPage />} />
         <Route path="dossiers/:dossierId" element={<BackofficeDossierDetailPage />} />
         <Route path="demande-extention" element={<BackofficeDemandeExtentionPage />} />
+        <Route path="tpe-a-affecter" element={<BackofficeTpeToAssignPage />} />
         <Route path="demande-extention/:dossierId" element={<BackofficeDemandeExtentionDetailPage />} />
         <Route path="historique" element={<BackofficeHistoryPage />} />
         <Route path="demandes-commerciales" element={<BackofficeCommercialRequestsPage />} />
@@ -186,6 +194,7 @@ export default function App() {
         <Route path="sous-commercants" element={<CommercantSubCommercantsPage />} />
         <Route path="tpe" element={<CommercantTpesPage />} />
         <Route path="reclamations" element={<CommercantReclamationsPage />} />
+        <Route path="mes-reclamations" element={<CommercantMesReclamationsPage />} />
         <Route path="*" element={<Navigate to="etat-dossier" replace />} />
       </Route>
 

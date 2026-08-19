@@ -90,6 +90,50 @@ describe('WorkspaceDashboard - navigation du menu', () => {
   });
 });
 
+describe('WorkspaceDashboard - categories de navigation repliables', () => {
+  const groupedItems: DrawerItem[] = [
+    { route: '/supervisor/overview', label: 'Vue d\'ensemble', icon: 'dashboard', count: null, exact: true },
+    { route: '/supervisor/affiliation-requests', label: 'Demandes affiliation', icon: 'assignment', count: null, exact: true, group: 'Dossiers' },
+    { route: '/supervisor/prospections', label: 'Prospections commerciales', icon: 'campaign', count: null, exact: true, group: 'Dossiers' },
+    { route: '/supervisor/commercants', label: 'Commerçants', icon: 'storefront', count: null, exact: true, group: 'Équipe' }
+  ];
+
+  beforeEach(() => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'SUPERVISEUR', nom: 'Jean Dupont' })
+    );
+  });
+
+  it('affiche un grand titre de categorie et regroupe les items qui partagent le meme groupe', () => {
+    renderShell({ primaryDrawerItems: groupedItems });
+    expect(screen.getByText('Dossiers')).toBeInTheDocument();
+    expect(screen.getByText('Équipe')).toBeInTheDocument();
+    expect(screen.getByText('Demandes affiliation')).toBeInTheDocument();
+    expect(screen.getByText('Prospections commerciales')).toBeInTheDocument();
+    // Un item sans groupe (Vue d'ensemble) reste affiche a plat, sans titre de categorie.
+    const navItems = screen.getAllByText('Vue d\'ensemble').map((el) => el.closest('li')).filter(Boolean);
+    expect(navItems.length).toBeGreaterThan(0);
+  });
+
+  it('replie et deplie une categorie au clic sur son titre', () => {
+    renderShell({ primaryDrawerItems: groupedItems });
+    const groupHead = screen.getByText('Dossiers').closest('button')!;
+    const groupWrap = groupHead.parentElement!;
+
+    expect(groupWrap.className).not.toContain('is-collapsed');
+    expect(groupHead.getAttribute('aria-expanded')).toBe('true');
+
+    fireEvent.click(groupHead);
+    expect(groupWrap.className).toContain('is-collapsed');
+    expect(groupHead.getAttribute('aria-expanded')).toBe('false');
+    // Les items restent dans le DOM (repli en CSS via max-height), pas retires.
+    expect(screen.getByText('Demandes affiliation')).toBeInTheDocument();
+
+    fireEvent.click(groupHead);
+    expect(groupWrap.className).not.toContain('is-collapsed');
+  });
+});
+
 describe('WorkspaceDashboard - notifications', () => {
   beforeEach(() => {
     useSessionStore.getState().setSession(
@@ -215,6 +259,24 @@ describe('WorkspaceDashboard - menu mobile', () => {
     expect(drawer.className).toContain('drawer-mobile');
 
     fireEvent.click(menuBtn);
+    expect(drawer.className).not.toContain('is-open');
+  });
+
+  it("ferme le tiroir au clic sur l'overlay — un vrai <button> (accessibilite clavier native, Sonar S1082/S6819/S6842)", () => {
+    renderShell();
+    const menuBtn = screen.getByLabelText('Menu');
+    const drawer = document.querySelector('.ws-drawer') as HTMLElement;
+
+    fireEvent.click(menuBtn);
+    expect(drawer.className).toContain('is-open');
+
+    const overlay = screen.getByLabelText('Fermer le menu');
+    // Un <button> HTML est nativement operable au clavier (Entree/Espace) par
+    // le navigateur lui-meme — pas besoin de handler onKeyDown applicatif ni
+    // de le re-tester ici, contrairement a un role="button" simule sur un <div>.
+    expect(overlay.tagName).toBe('BUTTON');
+
+    fireEvent.click(overlay);
     expect(drawer.className).not.toContain('is-open');
   });
 });

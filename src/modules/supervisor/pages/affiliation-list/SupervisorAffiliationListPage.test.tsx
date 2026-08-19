@@ -150,4 +150,125 @@ describe('SupervisorAffiliationListPage', () => {
     expect(screen.getByRole('button', { name: 'Assigner' })).toBeInTheDocument();
     expect(assignAffiliationToCommercialeMock).not.toHaveBeenCalled();
   });
+
+  it('filtre par statut, region et ville, puis reinitialise', async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'SUPERVISEUR' })
+    );
+    getAffiliationRequestsMock.mockResolvedValue({
+      requests: [
+        { dossierId: 1, origineCreation: 'AUTO', nomCommercant: 'Alpha SARL', status: 'ACTIF', region: 'Casablanca-Settat', ville: 'Casablanca' },
+        { dossierId: 2, origineCreation: 'AUTO', nomCommercant: 'Beta SARL', status: 'SOUMIS', region: 'Rabat-Salé', ville: 'Rabat' }
+      ]
+    });
+
+    renderPage();
+    await screen.findByText('Alpha SARL');
+    expect(screen.getByText('Beta SARL')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Validés/ }));
+    expect(screen.getByText('Alpha SARL')).toBeInTheDocument();
+    expect(screen.queryByText('Beta SARL')).toBeNull();
+
+    const resetButton = screen.getByRole('button', { name: 'Réinitialiser' });
+    expect(resetButton).not.toBeDisabled();
+    fireEvent.click(resetButton);
+    expect(screen.getByText('Alpha SARL')).toBeInTheDocument();
+    expect(screen.getByText('Beta SARL')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Région'), { target: { value: 'Casablanca-Settat' } });
+    expect(screen.getByText('Alpha SARL')).toBeInTheDocument();
+    expect(screen.queryByText('Beta SARL')).toBeNull();
+  });
+
+  it('filtre par statut d\'assignation (non assignees / assignees)', async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'SUPERVISEUR' })
+    );
+    getAffiliationRequestsMock.mockResolvedValue({
+      requests: [
+        { dossierId: 1, origineCreation: 'AUTO', nomCommercant: 'Alpha SARL', status: 'EN_ATTENTE_ASSIGNATION', region: 'Casablanca-Settat', commercialAttribue: '' },
+        { dossierId: 2, origineCreation: 'AUTO', nomCommercant: 'Beta SARL', status: 'SOUMIS', region: 'Casablanca-Settat', commercialAttribue: 'Amine Alaoui' }
+      ]
+    });
+
+    renderPage();
+    await screen.findByText('Alpha SARL');
+
+    fireEvent.click(screen.getByRole('button', { name: /Non assignées/ }));
+    expect(screen.getByText('Alpha SARL')).toBeInTheDocument();
+    expect(screen.queryByText('Beta SARL')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: /^Assignées/ }));
+    expect(screen.queryByText('Alpha SARL')).toBeNull();
+    expect(screen.getByText('Beta SARL')).toBeInTheDocument();
+  });
+
+  it('ouvre une fenetre d\'impression pour un dossier', async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'SUPERVISEUR' })
+    );
+    getAffiliationRequestsMock.mockResolvedValue({
+      requests: [{ dossierId: 1, origineCreation: 'AUTO', nomCommercant: 'Alpha SARL', status: 'SOUMIS' }]
+    });
+    const writeSpy = vi.fn();
+    const closeSpy = vi.fn();
+    const openSpy = vi.spyOn(window, 'open').mockReturnValue({
+      document: { write: writeSpy, close: closeSpy }
+    } as unknown as Window);
+
+    renderPage();
+    await screen.findByText('Alpha SARL');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Imprimer le dossier' }));
+
+    expect(openSpy).toHaveBeenCalledWith('', '_blank', 'width=980,height=720');
+    expect(writeSpy).toHaveBeenCalled();
+    expect(closeSpy).toHaveBeenCalled();
+
+    openSpy.mockRestore();
+  });
+
+  it('pagine la liste avec plus de resultats que la taille de page', async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'SUPERVISEUR' })
+    );
+    const requests = Array.from({ length: 10 }, (_, i) => ({
+      dossierId: i + 1, origineCreation: 'AUTO', status: 'SOUMIS', nomCommercant: `Commercant${i}`
+    }));
+    getAffiliationRequestsMock.mockResolvedValue({ requests });
+
+    renderPage();
+    // Tri par dossierId decroissant : Commercant9 (dossierId 10) apparait en premier.
+    await screen.findByText('Commercant9');
+    expect(screen.queryByText('Commercant0')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Suivant' }));
+    expect(await screen.findByText('Commercant0')).toBeInTheDocument();
+  });
+
+  it("affiche une erreur si l'assignation echoue", async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'SUPERVISEUR' })
+    );
+    getAffiliationRequestsMock.mockResolvedValue({
+      requests: [{ dossierId: 1, origineCreation: 'AUTO', nomCommercant: 'ACME SARL', status: 'EN_ATTENTE_ASSIGNATION', region: 'Casablanca' }]
+    });
+    getOverviewMock.mockResolvedValue({
+      backOffices: [],
+      commerciales: [{ id: 9, nom: 'Alaoui', prenom: 'Amine', region: 'Casablanca', email: '', matricule: '', telephone: '', active: true }],
+      commercants: []
+    });
+    assignAffiliationToCommercialeMock.mockRejectedValue({});
+
+    renderPage();
+    await screen.findByText('ACME SARL');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Assigner' }));
+    const row = screen.getByText('ACME SARL').closest('tr')!;
+    fireEvent.change(within(row).getByRole('combobox'), { target: { value: '9' } });
+    fireEvent.click(within(row).getByRole('button', { name: 'Confirmer' }));
+
+    expect(await screen.findByText("Impossible d'assigner ce dossier au commercial sélectionné.")).toBeInTheDocument();
+  });
 });

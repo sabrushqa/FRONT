@@ -1,8 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import WorkspaceDashboard, { DrawerItem, SummaryTile } from '../workspace/WorkspaceDashboard';
+import WorkspaceDashboard, { DrawerItem, NotificationItem, SummaryTile } from '../workspace/WorkspaceDashboard';
 import { useSessionStore } from '../../store/sessionStore';
-import { getAffiliationRequests, AffiliationRequestItem } from '../supervisor/services/supervisorApi';
+import {
+  getAffiliationRequests,
+  getNotifications,
+  markAllNotificationsAsRead,
+  AffiliationRequestItem,
+  NotificationApiItem
+} from '../supervisor/services/supervisorApi';
 import { getReclamationStats } from './services/reclamationsApi';
 import { currentSession } from '../auth/services/authApi';
 import { normalizeUserSessionResponse } from '../../store/sessionStore';
@@ -11,7 +17,9 @@ import {
   isCommercialDirectRequest,
   isHandledByCurrentBackOffice,
   isNewPdvRequest,
-  resolveAffiliationStatusKey
+  needsManualAssignment,
+  resolveAffiliationStatusKey,
+  formatRelativeDate
 } from '../workspace/workspaceUtils';
 import '../../styles/workspace-page.scss';
 import '../../styles/workspace-navbar.scss';
@@ -33,6 +41,7 @@ export default function BackofficeDashboard() {
   const [counts, setCounts] = useState({
     affiliationRequests: 0,
     extentionRequests: 0,
+    tpeToAssign: 0,
     affiliationPending: 0,
     affiliationProgress: 0,
     affiliationSent: 0,
@@ -41,17 +50,73 @@ export default function BackofficeDashboard() {
     reclamationsActives: 0,
   });
 
+  const [notificationItems, setNotificationItems] = useState<NotificationItem[]>([]);
+  const [unseenNotificationCount, setUnseenNotificationCount] = useState(0);
+
   const workspaceBaseRoute = '/backoffice';
   const overviewRoute = `${workspaceBaseRoute}/dashboard`;
   const dossiersRoute = `${workspaceBaseRoute}/dossiers`;
+  const extentionRoute = `${workspaceBaseRoute}/demande-extention`;
+  const tpeToAssignRoute = `${workspaceBaseRoute}/tpe-a-affecter`;
+
+  // Ex: "Le contrat du dossier #X ... a été signé — une référence TPE/SoftPOS/
+  // QR et/ou un site e-commerce doit être affecté" (StaffAffiliationManagementService::
+  // notifyBackOfficeTpeAssignmentNeeded) — sans cette cloche, le BOA ne savait
+  // que via l'e-mail qu'une affectation l'attendait. Ce type de notification
+  // redirige vers la liste "TPE à affecter" (filtrée sur le BOA connecté) plutôt
+  // que vers le dossier precis : avec plusieurs dossiers en attente, le BOA a
+  // besoin de la vue d'ensemble, pas seulement de celui qui vient de le notifier.
+  const mapNotification = useCallback((item: NotificationApiItem): NotificationItem => ({
+    notificationId: item.notificationId,
+    dossierId: item.dossierId ?? 0,
+    title: item.message,
+    helper: formatRelativeDate(item.dateEnvoi),
+    route: item.type === 'DOSSIER_TPE_A_AFFECTER'
+      ? tpeToAssignRoute
+      : item.dossierId
+        ? `${item.isNewPdvRequest ? extentionRoute : dossiersRoute}/${item.dossierId}`
+        : dossiersRoute,
+    isNew: !item.read,
+    type: item.type
+  }), [dossiersRoute, extentionRoute, tpeToAssignRoute]);
+
+  const loadNotifications = useCallback(async () => {
+    try {
+      const response = await getNotifications();
+      setNotificationItems(response.notifications.map(mapNotification));
+      setUnseenNotificationCount(response.unreadCount);
+    } catch {
+      // Silencieux : la cloche reste vide si l'appel echoue.
+    }
+  }, [mapNotification]);
+
+  async function handleNotificationMenuOpened() {
+    try {
+      const response = await markAllNotificationsAsRead();
+      setNotificationItems(response.notifications.map(mapNotification));
+      setUnseenNotificationCount(response.unreadCount);
+    } catch {
+      // Ignore.
+    }
+  }
+
+  // Rafraichit la cloche periodiquement : sans ca, une notification creee
+  // pendant que la page est deja ouverte ne serait visible qu'apres un
+  // rechargement complet — meme logique que CommercialDashboard.tsx.
+  useEffect(() => {
+    void loadNotifications();
+    const intervalId = window.setInterval(() => { void loadNotifications(); }, 45000);
+    return () => window.clearInterval(intervalId);
+  }, [loadNotifications]);
 
   useEffect(() => {
     const metaMap: Record<string, { title: string; description: string }> = {
       [`${workspaceBaseRoute}/dashboard`]: { title: 'Dashboard back office', description: 'Pilotez les dossiers à vérifier et les validations finales.' },
-      [`${workspaceBaseRoute}/dossiers`]: { title: 'Dossiers back office', description: 'Consultez, vérifiez et traitez les dossiers transmis au back office.' },
+      [`${workspaceBaseRoute}/dossiers`]: { title: 'Dossier Auto-affiliation', description: 'Consultez, vérifiez et traitez les dossiers d\'auto-affiliation transmis au back office.' },
       [`${workspaceBaseRoute}/demande-extention`]: { title: 'Demandes d\'extension', description: 'Validez ou refusez les extensions des commerçants déjà affiliés.' },
+      [`${workspaceBaseRoute}/tpe-a-affecter`]: { title: 'TPE à affecter', description: 'Dossiers avec contrat signé dont la référence TPE/SoftPOS/QR et/ou le site e-commerce reste à affecter.' },
       [`${workspaceBaseRoute}/historique`]: { title: 'Historique back office', description: 'Consultez les dossiers déjà traités.' },
-      [`${workspaceBaseRoute}/demandes-commerciales`]: { title: 'Demandes à valider', description: 'Consultez les prospections et demandes de nouveaux PDV.' },
+      [`${workspaceBaseRoute}/demandes-commerciales`]: { title: 'Dossier Prospection commerciale', description: 'Consultez et validez les demandes de prospection commerciale.' },
       [`${workspaceBaseRoute}/reclamations`]: { title: 'Réclamations TPE', description: 'Traitez les incidents signalés par le chatbot de support TPE.' },
       [`${workspaceBaseRoute}/reclamations-historique`]: { title: 'Historique réclamations', description: 'Consultez les réclamations résolues ou escaladées.' },
       [`${workspaceBaseRoute}/profil`]: { title: 'Profil back office', description: 'Retrouvez vos informations de session.' },
@@ -104,6 +169,9 @@ export default function BackofficeDashboard() {
       const handledAutoRequests = autoRequests.filter((request) =>
         isHandledByCurrentBackOffice(request, currentSessionValue)
       );
+      const tpeToAssignCount = requests.filter(
+        (request) => needsManualAssignment(request) && isHandledByCurrentBackOffice(request, currentSessionValue)
+      ).length;
       const statusCounts = { pending: 0, progress: 0, sent: 0, active: 0, refused: 0 };
       for (const req of handledAutoRequests) {
         statusCounts[resolveAffiliationStatusKey(req)] += 1;
@@ -124,6 +192,7 @@ export default function BackofficeDashboard() {
         // by the drawer badges — a dossier already treated shouldn't inflate either number.
         affiliationRequests: autoRequests.filter((request) => request.status === 'EN_ATTENTE_VALIDATION_BOA').length,
         extentionRequests: extentionRequests.filter((request) => request.status === 'EN_ATTENTE_VALIDATION_BOA').length,
+        tpeToAssign: tpeToAssignCount,
         affiliationPending: statusCounts.pending,
         affiliationProgress: statusCounts.progress,
         affiliationSent: statusCounts.sent,
@@ -156,10 +225,11 @@ export default function BackofficeDashboard() {
   const primaryDrawerItems: DrawerItem[] = [
     { route: overviewRoute, label: 'Dashboard', icon: 'dashboard', count: null, exact: true },
     ...(peutValiderDossiers ? [
-      { route: dossiersRoute, label: 'Dossiers', icon: 'assignment', count: counts.affiliationRequests || null },
+      { route: dossiersRoute, label: 'Dossier Auto-affiliation', icon: 'assignment', count: counts.affiliationRequests || null },
       { route: `${workspaceBaseRoute}/demande-extention`, label: 'Demande d\'extension', icon: 'add_business', count: counts.extentionRequests || null },
+      { route: `${workspaceBaseRoute}/tpe-a-affecter`, label: 'TPE à affecter', icon: 'point_of_sale', count: counts.tpeToAssign || null, exact: true },
       { route: `${workspaceBaseRoute}/historique`, label: 'Historique', icon: 'history', count: null, exact: true },
-      { route: `${workspaceBaseRoute}/demandes-commerciales`, label: 'Demandes à valider', icon: 'edit_note', count: counts.commercialRequests || null },
+      { route: `${workspaceBaseRoute}/demandes-commerciales`, label: 'Dossier Prospection commerciale', icon: 'edit_note', count: counts.commercialRequests || null },
     ] : []),
     ...(peutGererReclamations ? [
       { route: `${workspaceBaseRoute}/reclamations`, label: 'Réclamations TPE', icon: 'support_agent', count: counts.reclamationsActives || null, exact: true },
@@ -174,6 +244,9 @@ export default function BackofficeDashboard() {
       primaryDrawerItems={primaryDrawerItems}
       secondaryDrawerItems={[]}
       summaryTiles={summaryTiles}
+      notificationItems={notificationItems}
+      unseenNotificationCount={unseenNotificationCount}
+      onNotificationMenuOpened={handleNotificationMenuOpened}
       canManageAffiliationRequests={true}
       errorMessage={errorMessage}
       isRefreshingCounts={isRefreshingCounts}

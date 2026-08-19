@@ -5,11 +5,12 @@ import CommercialDossierCreatePage from './CommercialDossierCreatePage';
 import { useSessionStore, normalizeUserSessionResponse } from '../../../../store/sessionStore';
 
 const createCommercialDraftMock = vi.fn();
+const getAffiliationRequestsMock = vi.fn();
 
 vi.mock('../../../supervisor/services/supervisorApi', () => ({
   createCommercialDraft: (...args: unknown[]) => createCommercialDraftMock(...args),
   saveCommercialDraft: vi.fn(),
-  getAffiliationRequests: vi.fn().mockResolvedValue({ requests: [] })
+  getAffiliationRequests: (...args: unknown[]) => getAffiliationRequestsMock(...args)
 }));
 
 vi.mock('../../../../core/api', () => ({
@@ -26,8 +27,20 @@ function renderPage() {
   );
 }
 
+function renderEditPage(dossierId: number | string) {
+  return render(
+    <MemoryRouter initialEntries={[`/commercial/dossiers/${dossierId}/continue`]}>
+      <Routes>
+        <Route path="/commercial/dossiers/:dossierId/continue" element={<CommercialDossierCreatePage />} />
+      </Routes>
+    </MemoryRouter>
+  );
+}
+
 beforeEach(() => {
   createCommercialDraftMock.mockReset();
+  getAffiliationRequestsMock.mockReset();
+  getAffiliationRequestsMock.mockResolvedValue({ requests: [] });
   window.sessionStorage.clear();
   useSessionStore.getState().clearSession();
 });
@@ -166,5 +179,65 @@ describe('CommercialDossierCreatePage', () => {
 
     expect(screen.getByText('CIN')).toBeInTheDocument();
     expect(screen.getAllByText('RIB').length).toBeGreaterThan(0);
+  });
+});
+
+describe('CommercialDossierCreatePage - mode edition (continuer un brouillon)', () => {
+  beforeEach(() => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({ utilisateurId: 1, commercantId: 1, role: 'COMMERCIAL' })
+    );
+  });
+
+  it('charge et pre-remplit le formulaire depuis le brouillon commercial correspondant', async () => {
+    getAffiliationRequestsMock.mockResolvedValue({
+      requests: [
+        {
+          dossierId: 123,
+          typeCommercant: 'PERSONNE_PHYSIQUE',
+          typeAffiliation: 'TPE',
+          nom: 'Alaoui',
+          prenom: 'Amine',
+          email: 'amine.alaoui@example.com',
+          telephone: '0600000000',
+          adresse: '12 rue des Fleurs',
+          ville: 'Casablanca',
+          nombrePointsVente: 1,
+          origineCreation: 'COMMERCIAL_DIRECT',
+          status: 'BROUILLON',
+          documents: []
+        }
+      ]
+    });
+
+    renderEditPage(123);
+
+    expect(await screen.findByDisplayValue('Alaoui')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Amine')).toBeInTheDocument();
+    expect(screen.getAllByDisplayValue('amine.alaoui@example.com').length).toBeGreaterThan(0);
+  });
+
+  it("affiche un message si aucun brouillon ne correspond a l'identifiant demande", async () => {
+    getAffiliationRequestsMock.mockResolvedValue({
+      requests: [{ dossierId: 999, typeCommercant: 'PERSONNE_PHYSIQUE', typeAffiliation: 'TPE', documents: [] }]
+    });
+
+    renderEditPage(123);
+
+    expect(await screen.findByText('Ce brouillon commercial est introuvable.')).toBeInTheDocument();
+  });
+
+  it('affiche un message d\'erreur si le chargement du brouillon echoue', async () => {
+    getAffiliationRequestsMock.mockRejectedValue({});
+
+    renderEditPage(123);
+
+    expect(await screen.findByText('Impossible de charger le brouillon commercial.')).toBeInTheDocument();
+  });
+
+  it("ne charge aucun brouillon pour la route de creation (pas d'identifiant)", () => {
+    renderPage();
+
+    expect(getAffiliationRequestsMock).not.toHaveBeenCalled();
   });
 });

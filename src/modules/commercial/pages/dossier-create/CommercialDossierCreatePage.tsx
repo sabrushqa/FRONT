@@ -281,8 +281,20 @@ function sanitizeDecimal(value: string, maxLength?: number): string {
   return maxLength ? cleaned.slice(0, maxLength) : cleaned;
 }
 
+// Sans regex globale (Sonar S8786 : "[^\s@]+@[^\s@]+\.[^\s@]+" est signale
+// comme motif a backtracking super-lineaire) — verification structurelle
+// equivalente : partie locale non vide, un seul "@", domaine avec un "."
+// ni en tete ni en fin.
 function isValidEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+  const trimmed = value.trim();
+  if (!trimmed || /\s/.test(trimmed)) return false;
+
+  const atIndex = trimmed.indexOf('@');
+  if (atIndex <= 0 || trimmed.includes('@', atIndex + 1)) return false;
+
+  const domain = trimmed.slice(atIndex + 1);
+  const dotIndex = domain.lastIndexOf('.');
+  return dotIndex > 0 && dotIndex < domain.length - 1;
 }
 
 function emptyPointVente(): PointVenteFormData {
@@ -333,6 +345,7 @@ function createInitialPayload(): CommercialAffiliationDraftPayload {
     siteMarchandUrl: '',
     applicationMobile: '',
     modeleQrSoftpos: '',
+    nombreQrSoftpos: '',
     rib: '',
     pointVentesJson: '[]',
     cinDocumentName: '',
@@ -392,6 +405,7 @@ function payloadFromRequest(request: AffiliationRequestItem): CommercialAffiliat
     siteMarchandUrl: request.siteMarchandUrl || '',
     applicationMobile: request.applicationMobile || '',
     modeleQrSoftpos: request.modeleQrSoftpos || '',
+    nombreQrSoftpos: request.nombreQrSoftpos == null ? '' : String(request.nombreQrSoftpos),
     rib: request.rib || '',
     pointVentesJson: '[]'
   };
@@ -673,6 +687,12 @@ export default function CommercialDossierCreatePage() {
     setForm((prev) => ({ ...prev, nombreTpe: cleanValue }));
   }
 
+  function onNombreQrSoftposChange(value: string) {
+    let cleanValue = value.replace(/\D+/g, '');
+    if (Number.parseInt(cleanValue, 10) > MAX_TPE) cleanValue = String(MAX_TPE);
+    setForm((prev) => ({ ...prev, nombreQrSoftpos: cleanValue }));
+  }
+
   function onNombrePointsVenteChange(value: string) {
     let cleanValue = value.replace(/\D+/g, '');
     if (Number.parseInt(cleanValue, 10) > MAX_POINTS_VENTE) cleanValue = String(MAX_POINTS_VENTE);
@@ -801,6 +821,7 @@ export default function CommercialDossierCreatePage() {
       compteRenduChaine: hasChain ? form.compteRenduChaine : '',
       nombrePointsVente: sanitizeIntField(form.nombrePointsVente),
       nombreTpe: sanitizeIntField(form.nombreTpe),
+      nombreQrSoftpos: sanitizeIntField(form.nombreQrSoftpos),
       pointVentesJson: JSON.stringify(
         (showPointVentes ? pointVentes : []).map((pointVente) => ({
           nom: pointVente.nom.trim(),
@@ -887,7 +908,10 @@ export default function CommercialDossierCreatePage() {
       );
     }
     if (isQrSoftposRequest) {
-      fields.push({ key: 'modeleQrSoftpos', label: 'Modèle QR / SoftPOS', value: form.modeleQrSoftpos });
+      fields.push(
+        { key: 'modeleQrSoftpos', label: 'Modèle QR / SoftPOS', value: form.modeleQrSoftpos },
+        { key: 'nombreQrSoftpos', label: 'Nombre QR / SoftPOS', value: form.nombreQrSoftpos }
+      );
     }
     return fields;
   }
@@ -1381,7 +1405,24 @@ export default function CommercialDossierCreatePage() {
                     </>
                   )}
 
-                  {isQrSoftposRequest && renderInput('Modèle QR / SoftPOS', 'modeleQrSoftpos', resolveQrSoftposOptions(form.typeAffiliation))}
+                  {isQrSoftposRequest && (
+                    <>
+                      {renderInput('Modèle QR / SoftPOS', 'modeleQrSoftpos', resolveQrSoftposOptions(form.typeAffiliation))}
+                      <label className="form-group">
+                        <span>Nombre QR / SoftPOS</span>
+                        <input
+                          className="form-input"
+                          type="number"
+                          min={1}
+                          max={MAX_TPE}
+                          step={1}
+                          value={form.nombreQrSoftpos}
+                          disabled={isSubmitting || isCorrectionFieldLocked('nombreQrSoftpos')}
+                          onChange={(event) => onNombreQrSoftposChange(event.target.value)}
+                        />
+                      </label>
+                    </>
+                  )}
 
                   {(isTpeRequest || isQrSoftposRequest) && (
                     <div className="field-full service-options">

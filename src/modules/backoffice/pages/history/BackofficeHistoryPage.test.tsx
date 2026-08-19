@@ -60,6 +60,25 @@ describe('BackofficeHistoryPage', () => {
     expect(screen.getByText('Beta SARL')).toBeInTheDocument();
   });
 
+  it("filtre par origine 'Extension' pour n'afficher que les demandes NOUVEAU_PDV", async () => {
+    getAffiliationRequestsMock.mockResolvedValue({
+      requests: [
+        { dossierId: 1, status: 'ACCEPTE', backOfficeUtilisateurId: 42, nomCommercant: 'DossierAuto', origineCreation: 'AUTO_AFFILIATION' },
+        { dossierId: 2, status: 'ACCEPTE', backOfficeUtilisateurId: 42, nomCommercant: 'DossierExtension', origineCreation: 'NOUVEAU_PDV' },
+        { dossierId: 3, status: 'ABANDONNE', backOfficeUtilisateurId: 42, nomCommercant: 'AutreExtension', origineCreation: 'NOUVEAU_PDV' }
+      ]
+    });
+
+    renderPage();
+    await screen.findByText('DossierAuto');
+
+    fireEvent.change(screen.getByLabelText('Origine'), { target: { value: 'extension' } });
+
+    expect(screen.queryByText('DossierAuto')).toBeNull();
+    expect(screen.getByText('DossierExtension')).toBeInTheDocument();
+    expect(screen.getByText('AutreExtension')).toBeInTheDocument();
+  });
+
   it("affiche un message d'erreur si le chargement echoue", async () => {
     getAffiliationRequestsMock.mockRejectedValue(new Error('503'));
     renderPage();

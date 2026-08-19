@@ -11,7 +11,7 @@
 .tpe-info-grid { display:grid; grid-template-columns:1fr 1fr; gap:0; padding:4px 16px 8px; }
 .tpe-info-grid > div { padding:7px 0; border-bottom:1px solid #EEF2F7; }
 .tpe-info-grid > div:nth-last-child(-n+2) { border-bottom:none; }
-.tpe-info-grid label { display:block; font-size:9.5px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:.06em; margin-bottom:2px; }
+.tpe-info-grid .field-caption { display:block; font-size:9.5px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:.06em; margin-bottom:2px; }
 .tpe-info-grid span { font-size:12px; font-weight:500; color:#1E293B; }
 .tpe-feedback { margin:0 16px; padding:8px 12px; border-radius:5px; font-size:12px; font-weight:600; }
 .tpe-feedback.is-success { background:#ECFDF5; color:#065F46; }
@@ -26,7 +26,7 @@
 /* ── Dark mode ── */
 [data-theme="dark"] .tpe-card { background: #1E2130; border-color: rgba(255,255,255,.06); }
 [data-theme="dark"] .tpe-card-head { background: #1a3590; border-bottom-color: #FB923C; }
-[data-theme="dark"] .tpe-info-grid > div { border-bottom-color: rgba(255,255,255,.04); label { color: #4D5670; } span { color: #C8D0E8; } }
+[data-theme="dark"] .tpe-info-grid > div { border-bottom-color: rgba(255,255,255,.04); .field-caption { color: #4D5670; } span { color: #C8D0E8; } }
 [data-theme="dark"] .tpe-assignment { background: rgba(255,255,255,.03); border-top-color: rgba(255,255,255,.06); select { background: #1E2130; border-color: rgba(255,255,255,.09); color: #C8D0E8; &:focus { border-color: #FB923C; } } }
 
 /* Espace sous-commerçant : accent bleu clair a la place de l'orange. */

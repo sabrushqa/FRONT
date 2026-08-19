@@ -16,6 +16,7 @@ import {
   getAffiliationRequests,
   getEligibleTpes,
   assignTpeToCommercant,
+  assignEcommerceSiteToCommercant,
   abandonAffiliationRequest,
   reviewAffiliationRequest,
   saveCommercialDraft,
@@ -137,6 +138,9 @@ export default function CommercialDossierDetailPage({
   const [isAssigningTpe, setIsAssigningTpe] = useState(false);
   const [selectedTpeId, setSelectedTpeId] = useState('');
   const [tpeMessage, setTpeMessage] = useState('');
+  const [ecommerceSiteUrl, setEcommerceSiteUrl] = useState('');
+  const [isAssigningEcommerceSite, setIsAssigningEcommerceSite] = useState(false);
+  const [ecommerceSiteMessage, setEcommerceSiteMessage] = useState('');
 
   const role = session?.role ?? '';
   const hasAccess = role === 'SUPERVISEUR' || role === 'COMMERCIAL' || role === 'BACK_OFFICE';
@@ -187,13 +191,31 @@ export default function CommercialDossierDetailPage({
     isCommercialRole
     && !!requestItem
     && requestItem.status === 'INCOMPLET';
+  // Aligne strictement sur le backend (getEligibleTpesForDossier /
+  // validateTpeAssignment) qui n'autorise l'affectation qu'une fois le
+  // contrat reellement SIGNE ET DEPOSE (ACCEPTE) — avant ce correctif, le
+  // bloc s'affichait deja au statut CONTRAT_A_SIGNER (contrat genere/envoye,
+  // pas encore signe), et l'API retournait alors systematiquement un stock
+  // vide : l'utilisateur voyait a tort "Aucun TPE disponible pour ce type de
+  // dossier" au lieu de comprendre qu'il fallait d'abord attendre la
+  // signature du commercant.
   const canAssignTpe =
     isBackOfficeRole
     && session?.peutAffecterTpe !== false
     && !!requestItem
     && requestItem.typeAffiliation !== 'E_COMMERCE'
     && !requestItem.tpeDejaAffecte
-    && (requestItem.status === 'CONTRAT_A_SIGNER' || requestItem.status === 'ACCEPTE');
+    && requestItem.status === 'ACCEPTE';
+  // ENCAISSEMENT_ET_ECOMMERCE combine les deux canaux : ce dossier doit donner
+  // acces aux DEUX blocs d'affectation en meme temps (TPE demande(s) ci-dessus
+  // ET site e-commerce ici) — un dossier E_COMMERCE pur n'a que celui-ci.
+  const canAssignEcommerceSite =
+    isBackOfficeRole
+    && session?.peutAffecterTpe !== false
+    && !!requestItem
+    && (requestItem.typeAffiliation === 'E_COMMERCE' || requestItem.typeAffiliation === 'ENCAISSEMENT_ET_ECOMMERCE')
+    && !requestItem.ecommerceSiteDejaAffecte
+    && requestItem.status === 'ACCEPTE';
 
   const mode: 'view' | 'edit' =
     (requestItem?.compteActif && !isNewPdvRequest) || !canEditRequest ? 'view' : requestedMode;
@@ -275,6 +297,13 @@ export default function CommercialDossierDetailPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canAssignTpe, requestItem?.dossierId]);
 
+  useEffect(() => {
+    if (canAssignEcommerceSite) {
+      setEcommerceSiteUrl((prev) => prev || requestItem?.siteMarchandUrl || '');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canAssignEcommerceSite, requestItem?.dossierId]);
+
   async function assignTpe() {
     if (!requestItem || !selectedTpeId || isAssigningTpe) return;
     setIsAssigningTpe(true);
@@ -288,6 +317,24 @@ export default function CommercialDossierDetailPage({
       setTpeMessage(extractApiErrorMessage(error, "Impossible d'affecter cette référence TPE."));
     } finally {
       setIsAssigningTpe(false);
+    }
+  }
+
+  async function assignEcommerceSite() {
+    if (!requestItem || isAssigningEcommerceSite) return;
+    setIsAssigningEcommerceSite(true);
+    setEcommerceSiteMessage('');
+    try {
+      const response = await assignEcommerceSiteToCommercant({
+        dossierId: requestItem.dossierId,
+        url: ecommerceSiteUrl.trim() || undefined
+      });
+      setEcommerceSiteMessage(response.message);
+      await loadRequest(requestItem.dossierId, false);
+    } catch (error) {
+      setEcommerceSiteMessage(extractApiErrorMessage(error, "Impossible d'affecter ce site e-commerce."));
+    } finally {
+      setIsAssigningEcommerceSite(false);
     }
   }
 
@@ -381,6 +428,7 @@ export default function CommercialDossierDetailPage({
       { label: 'Équipement', value: firstMeaningful(requestItem.equipementTpe) },
       { label: 'Connectivité', value: firstMeaningful(requestItem.connectiviteTpe) },
       { label: 'Modèle SoftPOS', value: firstMeaningful(requestItem.modeleQrSoftpos) },
+      { label: 'Nombre QR / SoftPOS', value: firstMeaningful(requestItem.nombreQrSoftpos) },
       { label: 'Mode service e-commerce', value: firstMeaningful(requestItem.modeServiceEcommerce) },
       { label: 'Site marchand', value: firstMeaningful(requestItem.siteMarchandUrl) },
       { label: 'Application mobile', value: firstMeaningful(requestItem.applicationMobile) }
@@ -469,7 +517,10 @@ export default function CommercialDossierDetailPage({
       );
     }
     if (!isTpeRequest && !isEcommerceRequest) {
-      rows.push({ label: 'Modèle QR / SoftPOS', value: firstMeaningful(requestItem.modeleQrSoftpos) });
+      rows.push(
+        { label: 'Modèle QR / SoftPOS', value: firstMeaningful(requestItem.modeleQrSoftpos) },
+        { label: 'Nombre QR / SoftPOS', value: firstMeaningful(requestItem.nombreQrSoftpos) }
+      );
     }
     return filterRows(rows);
   }, [requestItem, isTpeRequest, isEcommerceRequest]);
@@ -714,6 +765,7 @@ export default function CommercialDossierDetailPage({
       siteMarchandUrl: request.siteMarchandUrl || '',
       applicationMobile: request.applicationMobile || '',
       modeleQrSoftpos: request.modeleQrSoftpos || '',
+      nombreQrSoftpos: request.nombreQrSoftpos == null ? '' : String(request.nombreQrSoftpos),
       rib: request.rib || '',
       pointVentesJson: '[]',
       cinDocumentName: '',
@@ -1141,7 +1193,11 @@ export default function CommercialDossierDetailPage({
         {canAssignTpe && (
           <div className="page-card">
             <div style={{ padding: '14px 24px' }}>
-              <h3 style={{ margin: '0 0 10px', fontSize: '15px' }}>Affecter un TPE</h3>
+              <h3 style={{ margin: '0 0 4px', fontSize: '15px' }}>Affecter un TPE</h3>
+              <p style={{ margin: '0 0 10px', fontSize: '13px', color: 'var(--color-text-muted, #666)' }}>
+                Nombre demandé dans le dossier :{' '}
+                <strong>{requestItem?.nombreTpe ? requestItem.nombreTpe : 1}</strong>
+              </p>
               {tpeMessage && (
                 <div className="page-alert success" role="status" style={{ marginBottom: '10px' }}>
                   {tpeMessage}
@@ -1182,6 +1238,45 @@ export default function CommercialDossierDetailPage({
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {canAssignEcommerceSite && (
+          <div className="page-card">
+            <div style={{ padding: '14px 24px' }}>
+              <h3 style={{ margin: '0 0 10px', fontSize: '15px' }}>Affecter un site e-commerce</h3>
+              <p style={{ margin: '0 0 10px', fontSize: '13px', color: 'var(--color-text-muted, #666)' }}>
+                Interface ce dossier avec switch-monetique-service : confirmez l'URL du site marchand,
+                l'identifiant du site est généré automatiquement par Switch.
+              </p>
+              {ecommerceSiteMessage && (
+                <div className="page-alert success" role="status" style={{ marginBottom: '10px' }}>
+                  {ecommerceSiteMessage}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
+                <label className="form-field" style={{ flex: 1, minWidth: '240px' }}>
+                  <span>URL du site marchand</span>
+                  <input
+                    className="form-input"
+                    type="text"
+                    value={ecommerceSiteUrl}
+                    disabled={isAssigningEcommerceSite}
+                    onChange={(e) => setEcommerceSiteUrl(e.target.value)}
+                    placeholder="https://..."
+                  />
+                </label>
+                <button
+                  className="btn-primary"
+                  type="button"
+                  disabled={isAssigningEcommerceSite}
+                  onClick={() => assignEcommerceSite()}
+                >
+                  {isAssigningEcommerceSite ? 'Affectation...' : 'Affecter'}
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -1238,7 +1333,12 @@ export default function CommercialDossierDetailPage({
 
             {extensionPdvRows.length > 0 && (
               <div className={`info-card card-wide${extensionPdvRows.length >= 6 ? ' list-2cols' : ''}`}>
-                <h3>Nouveau point de vente</h3>
+                <h3>{requestItem.requestedPdvDejaExistant ? 'Point de vente existant — TPE seulement' : 'Nouveau point de vente'}</h3>
+                {requestItem.requestedPdvDejaExistant && (
+                  <p style={{ margin: '0 0 10px', fontSize: '12px', color: 'var(--color-text-muted, #666)' }}>
+                    Extension de TPE sur un point de vente déjà actif — aucun nouveau point de vente n'est créé.
+                  </p>
+                )}
                 <div className="info-list">
                   {extensionPdvRows.map((row) => (
                     <span key={row.label}><strong>{row.label}:</strong> {row.value}</span>

@@ -10,7 +10,17 @@ const MAX_UPLOAD_FILE_BYTES = 10 * 1024 * 1024;
 const MAX_UPLOAD_REQUEST_BYTES = 50 * 1024 * 1024;
 const MAX_POINTS_VENTE = 10;
 const MAX_TPE = 10;
-const DOCUMENT_AUTO_VALIDATION_TIMEOUT_MS = 12_000;
+// Meme plafond que MAX_TPE, cote backend le meme MAX_TPE est reutilise pour
+// valider la quantite SoftPOS/QR Code (voir AffiliationRegistrationService).
+const MAX_QR_SOFTPOS = 10;
+// 12s à l'origine — trop court sous charge réelle (CPU, sans batching) :
+// une suite E2E de 20 dossiers enchaînés déclenche parfois des inférences
+// >12s côté doc-classifier, faisant "abandonner" le front avant la réponse
+// (le document reste "skipped" au lieu d'être classifié). 25s absorbe cette
+// variance sans dégrader l'UX perçue (l'utilisateur voit "Validation..."
+// un peu plus longtemps, plutôt qu'un abandon prématuré et un rejet à la
+// soumission finale).
+const DOCUMENT_AUTO_VALIDATION_TIMEOUT_MS = 25_000;
 const DOCUMENT_AUTO_VALIDATION_MAX_FILE_SIZE_BYTES = 16 * 1024 * 1024;
 const DOCUMENT_AUTO_VALIDATION_IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'bmp']);
 const DOCUMENT_AUTO_VALIDATION_SUPPORTED_KEYS = new Set<DocumentKey>([
@@ -31,7 +41,7 @@ type FieldKey =
   | 'commissionLocaleTpe' | 'commissionEtrangereTpe' | 'depotTpe' | 'prixAchatTpe' | 'prixLicenceTpe'
   | 'modeServiceEcommerce' | 'siteMarchandUrl' | 'applicationMobile'
   | 'commissionLocaleEcommerce' | 'commissionEtrangereEcommerce' | 'fraisMiseEnServiceEcommerce'
-  | 'modeleQrSoftpos' | 'commissionLocaleQrSoftpos' | 'commissionEtrangereQrSoftpos'
+  | 'modeleQrSoftpos' | 'nombreQrSoftpos' | 'commissionLocaleQrSoftpos' | 'commissionEtrangereQrSoftpos'
   | 'fraisServiceQrSoftpos' | 'conditionsQrSoftpos' | 'rib' | 'encaissementProduit';
 
 type DocumentKey =
@@ -132,6 +142,46 @@ const qrSoftposModelOptions: SelectOption[] = [
   { value: 'QRCode', label: 'QR Code' },
   { value: 'SoftPOS', label: 'SoftPOS' }
 ];
+
+const nationaliteOptions: SelectOption[] = [
+  'Marocaine',
+  'Afghane', 'Albanaise', 'Algérienne', 'Allemande', 'Américaine', 'Andorrane',
+  'Angolaise', 'Antiguaise-et-Barbudienne', 'Argentine', 'Arménienne', 'Australienne',
+  'Autrichienne', 'Azerbaïdjanaise', 'Bahamienne', 'Bahreïnienne', 'Bangladaise',
+  'Barbadienne', 'Belge', 'Bélizienne', 'Béninoise', 'Bhoutanaise', 'Biélorusse',
+  'Birmane', 'Bolivienne', 'Bosnienne', 'Botswanaise', 'Brésilienne', 'Britannique',
+  'Brunéienne', 'Bulgare', 'Burkinabè', 'Burundaise', 'Cambodgienne', 'Camerounaise',
+  'Canadienne', 'Cap-verdienne', 'Centrafricaine', 'Chilienne', 'Chinoise',
+  'Chypriote', 'Colombienne', 'Comorienne', 'Congolaise', 'Costaricaine', 'Croate',
+  'Cubaine', 'Danoise', 'Djiboutienne', 'Dominicaine', 'Dominiquaise', 'Égyptienne',
+  'Émiratie', 'Équatorienne', 'Érythréenne', 'Espagnole', 'Estonienne',
+  'Eswatinienne', 'Éthiopienne', 'Fidjienne', 'Finlandaise', 'Française', 'Gabonaise',
+  'Gambienne', 'Géorgienne', 'Ghanéenne', 'Grecque', 'Grenadienne', 'Guatémaltèque',
+  'Guinéenne', 'Bissau-guinéenne', 'Équato-guinéenne', 'Guyanienne', 'Haïtienne',
+  'Hondurienne', 'Hongroise', 'Indienne', 'Indonésienne', 'Irakienne', 'Iranienne',
+  'Irlandaise', 'Islandaise', 'Israélienne', 'Italienne', 'Ivoirienne', 'Jamaïcaine',
+  'Japonaise', 'Jordanienne', 'Kazakhe', 'Kényane', 'Kirghize', 'Kiribatienne',
+  'Koweïtienne', 'Laotienne', 'Lesothane', 'Lettone', 'Libanaise', 'Libérienne',
+  'Libyenne', 'Liechtensteinoise', 'Lituanienne', 'Luxembourgeoise', 'Macédonienne',
+  'Malgache', 'Malaisienne', 'Malawienne', 'Maldivienne', 'Malienne', 'Maltaise',
+  'Marshallaise', 'Mauricienne', 'Mauritanienne', 'Mexicaine', 'Micronésienne',
+  'Moldave', 'Monégasque', 'Mongole', 'Monténégrine', 'Mozambicaine', 'Namibienne',
+  'Nauruane', 'Népalaise', 'Nicaraguayenne', 'Nigérienne', 'Nigériane',
+  'Nord-coréenne', 'Norvégienne', 'Néo-zélandaise', 'Omanaise', 'Ougandaise',
+  'Ouzbèke', 'Pakistanaise', 'Palaosienne', 'Palestinienne', 'Panaméenne',
+  'Papouane-néo-guinéenne', 'Paraguayenne', 'Néerlandaise', 'Péruvienne',
+  'Philippine', 'Polonaise', 'Portugaise', 'Qatarienne', 'Roumaine', 'Russe',
+  'Rwandaise', 'Saint-lucienne', 'Saint-marinaise', 'Saint-vincentaise-et-grenadine',
+  'Salomonaise', 'Salvadorienne', 'Samoane', 'Santoméenne', 'Saoudienne',
+  'Sénégalaise', 'Serbe', 'Seychelloise', 'Sierra-léonaise', 'Singapourienne',
+  'Slovaque', 'Slovène', 'Somalienne', 'Soudanaise', 'Sud-africaine',
+  'Sud-coréenne', 'Sud-soudanaise', 'Sri-lankaise', 'Suédoise', 'Suisse',
+  'Surinamaise', 'Syrienne', 'Tadjike', 'Tanzanienne', 'Tchadienne', 'Tchèque',
+  'Thaïlandaise', 'Timoraise', 'Togolaise', 'Tongienne', 'Trinidadienne',
+  'Tunisienne', 'Turkmène', 'Turque', 'Tuvaluane', 'Ukrainienne', 'Uruguayenne',
+  'Vanuatuane', 'Vaticane', 'Vénézuélienne', 'Vietnamienne', 'Yéménite',
+  'Zambienne', 'Zimbabwéenne'
+].map((nationalite) => ({ value: nationalite, label: nationalite }));
 
 // La configuration ne doit proposer que ce qui correspond au produit déjà
 // choisi - proposer "QR Code" alors qu'on a choisi "SoftPOS" (et inversement)
@@ -282,6 +332,7 @@ function createInitialFormData(): FormData {
     commissionEtrangereEcommerce: '',
     fraisMiseEnServiceEcommerce: '',
     modeleQrSoftpos: '',
+    nombreQrSoftpos: '',
     commissionLocaleQrSoftpos: '',
     commissionEtrangereQrSoftpos: '',
     fraisServiceQrSoftpos: '',
@@ -419,7 +470,7 @@ export default function Register({ onBackToLogin }: RegisterProps) {
       { key: 'fonction', label: 'Fonction du signataire', placeholder: 'Gérant, président, directeur...', icon: 'identity', optional: true },
       { key: 'beneficiairesEffectifs', label: 'Bénéficiaires effectifs', placeholder: 'Noms des bénéficiaires effectifs', icon: 'identity', optional: true },
       { key: 'dateNaissance', label: 'Date de naissance', placeholder: 'Date de naissance', icon: 'id', type: 'date', optional: true },
-      { key: 'nationalite', label: 'Nationalité', placeholder: 'Nationalité', icon: 'identity', optional: true },
+      { key: 'nationalite', label: 'Nationalité', placeholder: 'Sélectionnez une nationalité', icon: 'identity', options: nationaliteOptions, optional: true },
       { key: 'patente', label: 'Taxe professionnelle', placeholder: 'Numéro de patente', icon: 'id', optional: true }
     ],
     []
@@ -449,6 +500,14 @@ export default function Register({ onBackToLogin }: RegisterProps) {
             placeholder: selectedAffiliationType === 'SoftPOS' ? 'Sélectionnez une configuration' : 'Sélectionnez une configuration QR',
             icon: 'activity',
             options: resolveQrSoftposOptions(selectedAffiliationType as 'SoftPOS' | 'QRCode')
+          },
+          {
+            key: 'nombreQrSoftpos',
+            label: selectedAffiliationType === 'SoftPOS' ? 'Nombre de SoftPOS' : 'Nombre de QR Code',
+            placeholder: selectedAffiliationType === 'SoftPOS' ? 'Nombre de dispositifs' : 'Nombre de codes QR',
+            icon: 'hash',
+            type: 'number',
+            inputMode: 'numeric'
           }
         ];
       case 'EncaissementEcommerce': {
@@ -468,6 +527,14 @@ export default function Register({ onBackToLogin }: RegisterProps) {
                     placeholder: selectedEncaissementProduit === 'SoftPOS' ? 'Sélectionnez une configuration' : 'Sélectionnez une configuration QR',
                     icon: 'activity',
                     options: resolveQrSoftposOptions(selectedEncaissementProduit as 'SoftPOS' | 'QRCode')
+                  },
+                  {
+                    key: 'nombreQrSoftpos',
+                    label: selectedEncaissementProduit === 'SoftPOS' ? 'Nombre de SoftPOS' : 'Nombre de QR Code',
+                    placeholder: selectedEncaissementProduit === 'SoftPOS' ? 'Nombre de dispositifs' : 'Nombre de codes QR',
+                    icon: 'hash',
+                    type: 'number',
+                    inputMode: 'numeric'
                   }
                 ]
               : [];
@@ -646,7 +713,7 @@ export default function Register({ onBackToLogin }: RegisterProps) {
       'commissionLocaleTpe', 'commissionEtrangereTpe', 'depotTpe', 'prixAchatTpe', 'prixLicenceTpe',
       'modeServiceEcommerce', 'siteMarchandUrl', 'applicationMobile',
       'commissionLocaleEcommerce', 'commissionEtrangereEcommerce', 'fraisMiseEnServiceEcommerce',
-      'modeleQrSoftpos', 'commissionLocaleQrSoftpos', 'commissionEtrangereQrSoftpos',
+      'modeleQrSoftpos', 'nombreQrSoftpos', 'commissionLocaleQrSoftpos', 'commissionEtrangereQrSoftpos',
       'fraisServiceQrSoftpos', 'conditionsQrSoftpos', 'encaissementProduit'
     ];
     setFormData((prev) => {
@@ -689,10 +756,11 @@ export default function Register({ onBackToLogin }: RegisterProps) {
       return;
     }
 
-    const isNumeric = key === 'nombreTpe' || key === 'nombrePointsVente';
+    const isNumeric = key === 'nombreTpe' || key === 'nombrePointsVente' || key === 'nombreQrSoftpos';
     let normalized = isNumeric ? value.replace(/\D+/g, '') : value;
     if (key === 'nombrePointsVente' && Number.parseInt(normalized, 10) > MAX_POINTS_VENTE) normalized = String(MAX_POINTS_VENTE);
     if (key === 'nombreTpe' && Number.parseInt(normalized, 10) > MAX_TPE) normalized = String(MAX_TPE);
+    if (key === 'nombreQrSoftpos' && Number.parseInt(normalized, 10) > MAX_QR_SOFTPOS) normalized = String(MAX_QR_SOFTPOS);
 
     setFormData((prev) => {
       const next = { ...prev, [key]: normalized, acceptTerms: false };
@@ -702,7 +770,7 @@ export default function Register({ onBackToLogin }: RegisterProps) {
       if (key === 'encaissementProduit') {
         // Efface les champs du produit d'encaissement precedent pour ne pas
         // soumettre des donnees perimees (ex: passer de TPE a QR Code).
-        (['modeMiseADispositionTpe', 'equipementTpe', 'connectiviteTpe', 'nombreTpe', 'modeleQrSoftpos'] as FieldKey[])
+        (['modeMiseADispositionTpe', 'equipementTpe', 'connectiviteTpe', 'nombreTpe', 'modeleQrSoftpos', 'nombreQrSoftpos'] as FieldKey[])
           .forEach((k) => { next[k] = ''; });
       }
       return next;
@@ -1228,7 +1296,9 @@ export default function Register({ onBackToLogin }: RegisterProps) {
                       />
                     </div>
                     <div className="pdv-location-field">
-                      <label>Emplacement sur la carte</label>
+                      {/* <span> plutot que <label> (Sonar S6853) : PdvLocationPicker
+                          n'est pas un unique champ de formulaire associable. */}
+                      <span className="field-caption">Emplacement sur la carte</span>
                       <PdvLocationPicker
                         ville={pointVente.ville}
                         latitude={pointVente.latitude}
@@ -1393,8 +1463,8 @@ function FormField({
             placeholder={field.placeholder}
             autoComplete={field.autocomplete ?? 'off'}
             inputMode={field.inputMode}
-            min={field.key === 'nombrePointsVente' || field.key === 'nombreTpe' ? 1 : field.type === 'number' ? 0 : undefined}
-            max={field.key === 'nombrePointsVente' ? MAX_POINTS_VENTE : field.key === 'nombreTpe' ? MAX_TPE : undefined}
+            min={field.key === 'nombrePointsVente' || field.key === 'nombreTpe' || field.key === 'nombreQrSoftpos' ? 1 : field.type === 'number' ? 0 : undefined}
+            max={field.key === 'nombrePointsVente' ? MAX_POINTS_VENTE : field.key === 'nombreTpe' ? MAX_TPE : field.key === 'nombreQrSoftpos' ? MAX_QR_SOFTPOS : undefined}
             step={field.type === 'number' ? 1 : undefined}
             disabled={disabled}
             readOnly={field.readonly ?? false}

@@ -2,10 +2,12 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ReclamationItem,
   ReclamationStats,
+  fetchReclamationPdfBlob,
   getReclamations,
   getReclamationStats,
   updateReclamationStatut,
 } from '../../services/reclamationsApi';
+import { openBlobInNewTab } from '../../../../core/browserDownload';
 import '../../../../styles/page.shared.scss';
 import '../../../../styles/reclamations-shared.scss';
 
@@ -88,6 +90,20 @@ export default function BackofficeReclamationsPage() {
     }
   }
 
+  async function handleViewPdf(id: number) {
+    // Ouvrir l'onglet AVANT l'await (fetch async) : sinon les navigateurs
+    // bloquent l'ouverture comme un popup non sollicité — meme pattern que
+    // CommercantRequestStatusPage.tsx::handleViewContract.
+    const viewTab = window.open('', '_blank');
+    try {
+      const blob = await fetchReclamationPdfBlob(id);
+      await openBlobInNewTab(blob, viewTab);
+    } catch {
+      viewTab?.close();
+      setErrorMsg(`Impossible d'ouvrir la fiche PDF de la réclamation #${id}.`);
+    }
+  }
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return items.filter((item) => {
@@ -143,7 +159,7 @@ export default function BackofficeReclamationsPage() {
       {/* ── Filters ── */}
       <section className="reclam-filters">
         <label>
-          Recherche
+          Recherche{' '}
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -151,7 +167,7 @@ export default function BackofficeReclamationsPage() {
           />
         </label>
         <label>
-          Priorité
+          Priorité{' '}
           <select value={prioFilter} onChange={(e) => setPrio(e.target.value as PrioriteFilter)}>
             <option value="all">Toutes</option>
             <option value="CRITIQUE">Critique</option>
@@ -161,7 +177,7 @@ export default function BackofficeReclamationsPage() {
           </select>
         </label>
         <label>
-          Type
+          Type{' '}
           <select value={typeFilter} onChange={(e) => setType(e.target.value as TypeFilter)}>
             <option value="all">Tous</option>
             <option value="CONNECTIVITE">Connectivité</option>
@@ -190,7 +206,7 @@ export default function BackofficeReclamationsPage() {
 
         {isLoading && (
           <div className="reclam-loading">
-            <span className="page-loading-spinner" />
+            <span className="page-loading-spinner" />{' '}
             Chargement des réclamations...
           </div>
         )}
@@ -222,6 +238,10 @@ export default function BackofficeReclamationsPage() {
                     <td data-label="Priorité"><PrioBadge priorite={item.priorite} /></td>
                     <td data-label="Type"><span className="type-badge">{item.typeProbleme}</span></td>
                     <td data-label="Description">
+                      {/* Label court genere par le chatbot (agent/graph/nodes.py::
+                          _build_short_problem_label) — tri visuel rapide avant de
+                          lire la description complete en dessous. */}
+                      {item.resumeCourt && <div className="resume-court">{item.resumeCourt}</div>}
                       <strong>{item.description.slice(0, 60)}{item.description.length > 60 ? '…' : ''}</strong>
                       {item.referenceChat && <span>Réf: {item.referenceChat}</span>}
                     </td>
@@ -246,6 +266,14 @@ export default function BackofficeReclamationsPage() {
                     <td data-label="Date">{formatDate(item.dateCreation)}</td>
                     <td data-label="Actions">
                       <div className="reclam-actions">
+                        <button
+                          className="btn-secondary"
+                          type="button"
+                          onClick={() => handleViewPdf(item.idReclamation)}
+                          title="Ouvrir la fiche PDF (aperçu + impression)"
+                        >
+                          Voir / Imprimer
+                        </button>
                         <button
                           className="btn-resolve"
                           type="button"

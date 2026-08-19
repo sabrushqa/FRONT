@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">92% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>23/23</span>
+                <span class='fraction'>23/25</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">80% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>4/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">90% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>18/18</span>
+                <span class='fraction'>18/20</span>
             </div>
         
             
@@ -161,7 +161,22 @@
 <a name='L96'></a><a href='#L96'>96</a>
 <a name='L97'></a><a href='#L97'>97</a>
 <a name='L98'></a><a href='#L98'>98</a>
-<a name='L99'></a><a href='#L99'>99</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
@@ -206,6 +221,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">4x</span>
@@ -258,6 +280,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import api from '../../../core/api';
 import { resolveBackendApiUrl } from '../../../core/apiUrl';
@@ -277,6 +307,9 @@ export interface ReclamationItem {
   tpeId: number | null;
   tpeNumeroSerie: string | null;
   tpeModele: string | null;
+  // Repli texte quand tpeId/tpeNumeroSerie sont absents (TPE Oracle sans
+  // ligne locale correspondante) — voir BackofficeReclamationResponse.java.
+  tpeReference: string | null;
   commercantId: number | null;
   commercantNom: string | null;
   region: string | null;
@@ -285,6 +318,10 @@ export interface ReclamationItem {
   backOfficeId: number | null;
   backOfficeUtilisateurId: number | null;
   dureeTraitementJours: number | null;
+  // Label court (2-4 mots, ex: "Ecran noir TPE") genere par le chatbot —
+  // voir BackofficeReclamationResponse.java::resumeCourt. Absent pour les
+  // reclamations qui ne passent pas par le chatbot.
+  resumeCourt: string | null;
 }
 &nbsp;
 export interface ReclamationStats {
@@ -357,6 +394,14 @@ export async function updateReclamationStatut(id: number, statut: string): Promi
   const res = await api.patch&lt;ReclamationItem&gt;(`${base}/${id}/statut`, { statut });
   return res.data;
 }
+&nbsp;
+// Fiche PDF imprimable (une page, A4) d'une reclamation — voir
+// BackofficeReclamationController::pdf / ReclamationPdfService cote demo.
+// responseType 'blob' : reponse binaire (application/pdf), pas du JSON.
+export async function <span class="fstat-no" title="function not covered" >fetchReclamationPdfBlob(i</span>d: number): Promise&lt;Blob&gt; {
+  const res = <span class="cstat-no" title="statement not covered" >await api.get&lt;Blob&gt;(`${base}/${id}/pdf`, { responseType: 'blob' });</span>
+<span class="cstat-no" title="statement not covered" >  return res.data;</span>
+}
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -364,7 +409,7 @@ export async function updateReclamationStatut(id: number, statut: string): Promi
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-06T15:26:25.239Z
+                at 2026-08-19T03:19:59.499Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

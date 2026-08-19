@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSessionStore } from '../../../../store/sessionStore';
-import { ReclamationItem, getReclamations } from '../../services/reclamationsApi';
+import { ReclamationItem, fetchReclamationPdfBlob, getReclamations } from '../../services/reclamationsApi';
+import { openBlobInNewTab } from '../../../../core/browserDownload';
 import '../../../../styles/page.shared.scss';
 import '../../../../styles/reclamations-shared.scss';
 
@@ -65,6 +66,19 @@ export default function BackofficeReclamationHistoryPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  async function handleViewPdf(id: number) {
+    // Ouvrir l'onglet AVANT l'await (fetch async) : sinon les navigateurs
+    // bloquent l'ouverture comme un popup non sollicité.
+    const viewTab = window.open('', '_blank');
+    try {
+      const blob = await fetchReclamationPdfBlob(id);
+      await openBlobInNewTab(blob, viewTab);
+    } catch {
+      viewTab?.close();
+      setErrorMsg(`Impossible d'ouvrir la fiche PDF de la réclamation #${id}.`);
+    }
+  }
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return items.filter((item) => {
@@ -123,7 +137,7 @@ export default function BackofficeReclamationHistoryPage() {
       {/* ── Filters ── */}
       <section className="reclam-filters">
         <label>
-          Recherche
+          Recherche{' '}
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -131,7 +145,7 @@ export default function BackofficeReclamationHistoryPage() {
           />
         </label>
         <label>
-          Statut final
+          Statut final{' '}
           <select value={statutFilter} onChange={(e) => setStatut(e.target.value as StatutFilter)}>
             <option value="all">Tous</option>
             <option value="RESOLU">Résolu</option>
@@ -139,7 +153,7 @@ export default function BackofficeReclamationHistoryPage() {
           </select>
         </label>
         <label>
-          Type
+          Type{' '}
           <select value={typeFilter} onChange={(e) => setType(e.target.value as TypeFilter)}>
             <option value="all">Tous</option>
             <option value="CONNECTIVITE">Connectivité</option>
@@ -166,7 +180,7 @@ export default function BackofficeReclamationHistoryPage() {
 
         {isLoading && (
           <div className="reclam-loading">
-            <span className="page-loading-spinner" />
+            <span className="page-loading-spinner" />{' '}
             Chargement de l'historique...
           </div>
         )}
@@ -192,6 +206,7 @@ export default function BackofficeReclamationHistoryPage() {
                   <th>Date création</th>
                   <th>Date résolution</th>
                   <th>Durée de traitement</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -201,6 +216,7 @@ export default function BackofficeReclamationHistoryPage() {
                     <td data-label="Priorité"><PrioBadge priorite={item.priorite} /></td>
                     <td data-label="Type"><span className="type-badge">{item.typeProbleme}</span></td>
                     <td data-label="Description">
+                      {item.resumeCourt && <div className="resume-court">{item.resumeCourt}</div>}
                       <strong>{item.description.slice(0, 60)}{item.description.length > 60 ? '…' : ''}</strong>
                       {item.referenceChat && <span>Réf: {item.referenceChat}</span>}
                     </td>
@@ -235,6 +251,16 @@ export default function BackofficeReclamationHistoryPage() {
                       ) : (
                         <span>-</span>
                       )}
+                    </td>
+                    <td data-label="Actions">
+                      <button
+                        className="btn-secondary"
+                        type="button"
+                        onClick={() => handleViewPdf(item.idReclamation)}
+                        title="Ouvrir la fiche PDF (aperçu + impression)"
+                      >
+                        Voir / Imprimer
+                      </button>
                     </td>
                   </tr>
                 ))}

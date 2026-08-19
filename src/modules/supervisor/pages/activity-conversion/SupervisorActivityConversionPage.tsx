@@ -3,6 +3,7 @@ import Chart from 'chart.js/auto';
 import { useSupervisorDecisionData } from '../decision-dashboard/useSupervisorDecisionData';
 import { barChartOptions } from '../decision-dashboard/chartOptions';
 import { chartColors } from '../decision-dashboard/supervisorDecisionMetrics';
+import { exportButtonProps } from '../decision-dashboard/chartExport';
 import '../../../../styles/page.shared.scss';
 import '../../../../styles/supervisor-overview.scss';
 
@@ -158,6 +159,23 @@ export default function SupervisorActivityConversionPage() {
                 <h3>Comparaison des demandes par origine</h3>
               </div>
               <div className="decision-chart-wrap"><canvas ref={conversionChartRef} /></div>
+              <button
+                {...exportButtonProps(
+                  'activite-conversion-par-origine',
+                  'Conversion',
+                  [
+                    { header: 'Origine', key: 'label', value: (p: (typeof metrics.conversionByOriginPoints)[number]) => p.label },
+                    { header: 'Actives', key: 'actives', value: (p: (typeof metrics.conversionByOriginPoints)[number]) => p.values.Actives ?? 0 },
+                    { header: 'Validées', key: 'validees', value: (p: (typeof metrics.conversionByOriginPoints)[number]) => p.values['Validées'] ?? 0 },
+                    { header: 'Converties', key: 'converties', value: (p: (typeof metrics.conversionByOriginPoints)[number]) => p.values.Converties ?? 0 }
+                  ],
+                  metrics.conversionByOriginPoints
+                )}
+                type="button"
+              >
+                <span className="material-icons">download</span>{' '}
+                Excel
+              </button>
             </article>
           </section>
 
@@ -174,6 +192,21 @@ export default function SupervisorActivityConversionPage() {
                 <h3>Nombre de demandes par statut</h3>
               </div>
               <div className="decision-chart-wrap"><canvas ref={autoMonthlyChartRef} /></div>
+              <button
+                {...exportButtonProps(
+                  'activite-conversion-auto-affiliation-mensuel',
+                  'Auto-affiliation',
+                  [
+                    { header: 'Statut', key: 'label', value: (p: (typeof metrics.monthlyAutoStatusPoints)[number]) => p.label },
+                    { header: 'Demandes', key: 'value', value: (p: (typeof metrics.monthlyAutoStatusPoints)[number]) => p.value }
+                  ],
+                  metrics.monthlyAutoStatusPoints
+                )}
+                type="button"
+              >
+                <span className="material-icons">download</span>{' '}
+                Excel
+              </button>
             </article>
             <div className="decision-chart-grid">
               <article className="decision-chart-card">
@@ -182,6 +215,21 @@ export default function SupervisorActivityConversionPage() {
                   <h3>Nombre de prospections par statut</h3>
                 </div>
                 <div className="decision-chart-wrap"><canvas ref={prospectionStatusChartRef} /></div>
+                <button
+                  {...exportButtonProps(
+                    'activite-conversion-prospection-statut',
+                    'Prospection statut',
+                    [
+                      { header: 'Statut', key: 'label', value: (p: (typeof metrics.monthlyProspectionStatusPoints)[number]) => p.label },
+                      { header: 'Prospections', key: 'value', value: (p: (typeof metrics.monthlyProspectionStatusPoints)[number]) => p.value }
+                    ],
+                    metrics.monthlyProspectionStatusPoints
+                  )}
+                  type="button"
+                >
+                  <span className="material-icons">download</span>{' '}
+                  Excel
+                </button>
               </article>
               <article className="decision-chart-card">
                 <div className="decision-card-title">
@@ -189,6 +237,21 @@ export default function SupervisorActivityConversionPage() {
                   <h3>Nombre de prospections par région</h3>
                 </div>
                 <div className="decision-chart-wrap"><canvas ref={prospectionRegionChartRef} /></div>
+                <button
+                  {...exportButtonProps(
+                    'activite-conversion-prospection-region',
+                    'Prospection région',
+                    [
+                      { header: 'Région', key: 'label', value: (p: (typeof metrics.monthlyProspectionRegionPoints)[number]) => p.label },
+                      { header: 'Prospections', key: 'value', value: (p: (typeof metrics.monthlyProspectionRegionPoints)[number]) => p.value }
+                    ],
+                    metrics.monthlyProspectionRegionPoints
+                  )}
+                  type="button"
+                >
+                  <span className="material-icons">download</span>{' '}
+                  Excel
+                </button>
               </article>
             </div>
           </section>
@@ -207,6 +270,22 @@ export default function SupervisorActivityConversionPage() {
                   <h3>Auto-affiliation et prospection directe</h3>
                 </div>
                 <div className="decision-chart-wrap"><canvas ref={affiliationTypeChartRef} /></div>
+                <button
+                  {...exportButtonProps(
+                    'activite-conversion-segmentation-type-affiliation',
+                    'Type affiliation',
+                    [
+                      { header: 'Type', key: 'label', value: (p: (typeof metrics.affiliationTypePoints)[number]) => p.label },
+                      { header: 'Auto-affiliation', key: 'auto', value: (p: (typeof metrics.affiliationTypePoints)[number]) => p.values['Auto-affiliation'] ?? 0 },
+                      { header: 'Prospection directe', key: 'directe', value: (p: (typeof metrics.affiliationTypePoints)[number]) => p.values['Prospection directe'] ?? 0 }
+                    ],
+                    metrics.affiliationTypePoints
+                  )}
+                  type="button"
+                >
+                  <span className="material-icons">download</span>{' '}
+                  Excel
+                </button>
               </article>
               <article className="decision-chart-card">
                 <div className="decision-card-title">
@@ -214,6 +293,22 @@ export default function SupervisorActivityConversionPage() {
                   <h3>Répartition par type commerçant</h3>
                 </div>
                 <div className="decision-chart-wrap"><canvas ref={merchantNatureChartRef} /></div>
+                <button
+                  {...exportButtonProps(
+                    'activite-conversion-segmentation-nature-commercant',
+                    'Nature commerçant',
+                    [
+                      { header: 'Nature', key: 'label', value: (p: (typeof metrics.merchantNaturePoints)[number]) => p.label },
+                      { header: 'Auto-affiliation', key: 'auto', value: (p: (typeof metrics.merchantNaturePoints)[number]) => p.values['Auto-affiliation'] ?? 0 },
+                      { header: 'Prospection directe', key: 'directe', value: (p: (typeof metrics.merchantNaturePoints)[number]) => p.values['Prospection directe'] ?? 0 }
+                    ],
+                    metrics.merchantNaturePoints
+                  )}
+                  type="button"
+                >
+                  <span className="material-icons">download</span>{' '}
+                  Excel
+                </button>
               </article>
             </div>
           </section>

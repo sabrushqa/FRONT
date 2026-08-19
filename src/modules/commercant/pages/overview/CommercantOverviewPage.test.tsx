@@ -98,6 +98,37 @@ describe('CommercantOverviewPage', () => {
     expect(monthlyConfig.data.datasets[0].borderColor).toBe('#59bfe0');
   });
 
+  it("n'inclut que les transactions du canal actif (TPE) pour un profil combine dans l'espace Encaissement TPE", async () => {
+    useSessionStore.getState().setSession(
+      normalizeUserSessionResponse({
+        utilisateurId: 1,
+        commercantId: 1,
+        role: 'COMMERCANT',
+        typeAffiliation: 'ENCAISSEMENT_ET_ECOMMERCE',
+        transactions: [
+          { id: 1, canal: 'TPE', dateTransaction: '2026-07-01', pdv: 'PDV1', tpe: 'TPE1' } as never,
+          { id: 2, canal: 'ECOMMERCE', dateTransaction: '2026-07-02', pdv: '', tpe: 'boutique.ma' } as never
+        ],
+        tpes: [{ id: 1, numeroSerie: 'TPE1', modele: 'M1', statut: 'ACTIF', typeConnexion: 'GPRS', pdvId: 1, pdv: 'PDV1' } as never],
+        pdvs: [{ id: 1, nom: 'PDV1' } as never]
+      })
+    );
+    // activeAffiliationProfile par defaut = 'ENCAISSEMENT' (voir sessionStore.ts) :
+    // c'est l'espace "Encaissement TPE" qu'on verifie ici.
+    render(<CommercantOverviewPage />);
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const monthlyConfig = chartConfigs.find((c) => c.data.datasets[0].label === 'Transactions');
+    // Un seul point de donnees doit compter (la transaction TPE) : si la
+    // transaction e-commerce est mal incluse, le total sur juillet 2026 vaut 2.
+    const julyIndex = monthlyConfig.data.labels.findIndex((l: string) => l.includes('juil'));
+    expect(monthlyConfig.data.datasets[0].data[julyIndex]).toBe(1);
+
+    const pdvConfig = chartConfigs.find((c) => c.type === 'doughnut');
+    expect(pdvConfig.data.labels).toEqual(['PDV1']);
+    expect(pdvConfig.data.labels).not.toContain('Autre');
+  });
+
   it("garde l'accent orange pour un commercant principal (pas sous-commercant)", async () => {
     useSessionStore.getState().setSession(
       normalizeUserSessionResponse({

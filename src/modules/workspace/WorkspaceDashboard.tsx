@@ -11,6 +11,28 @@ export interface DrawerItem {
   icon: string;
   count?: number | null;
   exact?: boolean;
+  // Regroupe les items consecutifs partageant le meme libelle de groupe sous
+  // un grand titre de categorie repliable (ex: "Dossiers" pour Auto-affiliation
+  // + Prospections, "Equipe" pour Back office + Commerciales + Commercants).
+  // Un item sans "group" reste affiche a plat, comme avant.
+  group?: string;
+}
+
+// Regroupe une liste d'items en clusters consecutifs partageant le meme
+// "group" — un item sans groupe forme son propre cluster (group: null) et
+// s'affiche a plat, exactement comme avant l'introduction des categories.
+function clusterDrawerItems(items: DrawerItem[]): Array<{ group: string | null; items: DrawerItem[] }> {
+  const clusters: Array<{ group: string | null; items: DrawerItem[] }> = [];
+  for (const item of items) {
+    const group = item.group ?? null;
+    const last = clusters[clusters.length - 1];
+    if (last && last.group === group) {
+      last.items.push(item);
+    } else {
+      clusters.push({ group, items: [item] });
+    }
+  }
+  return clusters;
 }
 
 export interface SummaryTile {
@@ -102,6 +124,21 @@ export default function WorkspaceDashboard({
   const [showNotifMenu, setShowNotifMenu] = useState(false);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  // Categories de la navigation repliees par l'utilisateur (toutes ouvertes
+  // par defaut) — garde en memoire pour la session, pas besoin de persister.
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+
+  function toggleGroup(group: string) {
+    setCollapsedGroups((current) => {
+      const next = new Set(current);
+      if (next.has(group)) {
+        next.delete(group);
+      } else {
+        next.add(group);
+      }
+      return next;
+    });
+  }
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const stored = localStorage.getItem('app-theme');
@@ -237,6 +274,30 @@ export default function WorkspaceDashboard({
     isMobileView && isDrawerOpen ? 'is-open' : '',
   ].filter(Boolean).join(' ');
 
+  function renderDrawerNavItem(item: DrawerItem) {
+    return (
+      <li key={item.route}>
+        <button
+          type="button"
+          className={`drawer-nav-item${isActiveDrawerItem(item, allDrawerItems) ? ' is-active' : ''}`}
+          onClick={() => handleNavSelection(item.route)}
+        >
+          <div className={`nav-item-inner${!showDrawerText ? ' nav-mini' : ''}`}>
+            <span className="nav-item-icon">
+              <span className="material-icons">{item.icon}</span>
+            </span>
+            {showDrawerText && (
+              <span className="nav-item-label">{item.label}</span>
+            )}
+            {showDrawerText && item.count != null && (
+              <span className="nav-item-badge">{item.count}</span>
+            )}
+          </div>
+        </button>
+      </li>
+    );
+  }
+
   if (isLoading && !session) {
     return (
       <section className="ws-splash">
@@ -264,7 +325,16 @@ export default function WorkspaceDashboard({
     <div className={shellClasses}>
       {/* Mobile drawer overlay */}
       {isMobileView && isDrawerOpen && (
-        <div className="drawer-overlay" onClick={closeMobileDrawer} />
+        // <button> plutot que role="button" sur un <div> (Sonar S6819/S6842 :
+        // faux role interactif sur un element non-interactif) — un vrai bouton
+        // recoit nativement le clavier (Entree/Espace) sans handler manuel, et
+        // reste correct pour Sonar S1082 (garde-fou clavier sur un handler clic).
+        <button
+          type="button"
+          className="drawer-overlay"
+          aria-label="Fermer le menu"
+          onClick={closeMobileDrawer}
+        />
       )}
 
       {/* DRAWER */}
@@ -315,56 +385,47 @@ export default function WorkspaceDashboard({
           {/* Navigation principale */}
           <nav className="drawer-nav">
             {showDrawerText && <p className="drawer-nav-heading">Navigation</p>}
-            <ul className="drawer-nav-list">
-              {primaryDrawerItems.map((item) => (
-                <li key={item.route}>
-                  <button
-                    type="button"
-                    className={`drawer-nav-item${isActiveDrawerItem(item, allDrawerItems) ? ' is-active' : ''}`}
-                    onClick={() => handleNavSelection(item.route)}
-                  >
-                    <div className={`nav-item-inner${!showDrawerText ? ' nav-mini' : ''}`}>
-                      <span className="nav-item-icon">
-                        <span className="material-icons">{item.icon}</span>
-                      </span>
-                      {showDrawerText && (
-                        <span className="nav-item-label">{item.label}</span>
-                      )}
-                      {showDrawerText && item.count != null && (
-                        <span className="nav-item-badge">{item.count}</span>
-                      )}
+            {/* En mode reduit (icones seules), les grands titres de categorie
+                n'ont pas la place de s'afficher : on retombe sur une liste a
+                plat, comme avant l'introduction des categories. */}
+            {showDrawerText
+              ? clusterDrawerItems(primaryDrawerItems).map((cluster, clusterIdx) =>
+                  cluster.group ? (
+                    <div
+                      key={`group-${cluster.group}`}
+                      className={`drawer-nav-group${collapsedGroups.has(cluster.group) ? ' is-collapsed' : ''}`}
+                    >
+                      <button
+                        type="button"
+                        className="drawer-nav-group-head"
+                        onClick={() => toggleGroup(cluster.group as string)}
+                        aria-expanded={!collapsedGroups.has(cluster.group)}
+                      >
+                        <span>{cluster.group}</span>
+                        <span className="material-icons drawer-nav-group-chevron">expand_more</span>
+                      </button>
+                      <ul className="drawer-nav-list drawer-nav-group-list">
+                        {cluster.items.map((item) => renderDrawerNavItem(item))}
+                      </ul>
                     </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
+                  ) : (
+                    <ul className="drawer-nav-list" key={`flat-${clusterIdx}`}>
+                      {cluster.items.map((item) => renderDrawerNavItem(item))}
+                    </ul>
+                  )
+                )
+              : (
+                <ul className="drawer-nav-list">
+                  {primaryDrawerItems.map((item) => renderDrawerNavItem(item))}
+                </ul>
+              )}
 
             {secondaryDrawerItems.length > 0 && (
               <>
                 <div className="drawer-nav-divider" />
                 {showDrawerText && <p className="drawer-nav-heading">Administration</p>}
                 <ul className="drawer-nav-list">
-                  {secondaryDrawerItems.map((item) => (
-                    <li key={item.route}>
-                      <button
-                        type="button"
-                        className={`drawer-nav-item${isActiveDrawerItem(item, allDrawerItems) ? ' is-active' : ''}`}
-                        onClick={() => handleNavSelection(item.route)}
-                      >
-                        <div className={`nav-item-inner${!showDrawerText ? ' nav-mini' : ''}`}>
-                          <span className="nav-item-icon">
-                            <span className="material-icons">{item.icon}</span>
-                          </span>
-                          {showDrawerText && (
-                            <span className="nav-item-label">{item.label}</span>
-                          )}
-                          {showDrawerText && item.count != null && (
-                            <span className="nav-item-badge">{item.count}</span>
-                          )}
-                        </div>
-                      </button>
-                    </li>
-                  ))}
+                  {secondaryDrawerItems.map((item) => renderDrawerNavItem(item))}
                 </ul>
               </>
             )}

@@ -813,12 +813,23 @@ export default function CommercialDirectRequestsPage({
       </div>
 
       {selectedRequest && (
-        <section className="interaction-overlay" onClick={closeInteractionPanel}>
+        <section className="interaction-overlay">
+          {/* <button> plutot que role="button" sur la section elle-meme (Sonar
+              S6819/S6842) : la section contient le dialogue et ses propres
+              boutons/champs, donc en faire un <button> imbriquerait des
+              elements interactifs dans un bouton (HTML invalide). Ce bouton
+              de fond, plein ecran et invisible, gere le "clic en dehors pour
+              fermer" nativement au clavier, sans toucher au reste du contenu. */}
+          <button
+            type="button"
+            className="interaction-overlay-backdrop"
+            aria-label="Fermer le panneau d'interaction"
+            onClick={closeInteractionPanel}
+          />
           <div
             className="interaction-dialog"
             role="dialog"
             aria-modal="true"
-            onClick={(e) => e.stopPropagation()}
           >
             <div className="interaction-head">
               <div>
@@ -852,8 +863,9 @@ export default function CommercialDirectRequestsPage({
                     </div>
                     <div className="interaction-form-grid">
                       <div className="filter-field">
-                        <label>Type d'interaction</label>
+                        <label htmlFor="interaction-type">Type d'interaction</label>
                         <select
+                          id="interaction-type"
                           className="form-input"
                           value={interactionForm.typeInteraction}
                           onChange={(e) => handleInteractionTypeChange(e.target.value)}
@@ -866,8 +878,9 @@ export default function CommercialDirectRequestsPage({
                         </select>
                       </div>
                       <div className="filter-field">
-                        <label>Date de l'action</label>
+                        <label htmlFor="interaction-date">Date de l'action</label>
                         <input
+                          id="interaction-date"
                           type="date"
                           className="form-input"
                           value={interactionForm.dateInteraction}
@@ -888,8 +901,9 @@ export default function CommercialDirectRequestsPage({
                       </div>
                     </div>
                     <div className="filter-field field-full">
-                      <label>Résultat</label>
+                      <label htmlFor="interaction-resultat">Résultat</label>
                       <input
+                        id="interaction-resultat"
                         className="form-input"
                         placeholder="Répondu, RDV confirmé, pas intéressé..."
                         value={interactionForm.resultat}
@@ -909,8 +923,9 @@ export default function CommercialDirectRequestsPage({
                       </div>
                     </div>
                     <div className="filter-field field-full">
-                      <label>Statut du prospect</label>
+                      <label htmlFor="interaction-prospect-status">Statut du prospect</label>
                       <select
+                        id="interaction-prospect-status"
                         className="form-input"
                         value={interactionForm.prospectStatus}
                         onChange={(e) => handleProspectStatusChange(e.target.value)}
@@ -939,10 +954,11 @@ export default function CommercialDirectRequestsPage({
                       </div>
                       <div className="interaction-form-grid">
                         <div className="filter-field">
-                          <label>
+                          <label htmlFor="interaction-relance-date">
                             {isReminderRequired ? 'Date de relance obligatoire' : 'Date de relance'}
                           </label>
                           <input
+                            id="interaction-relance-date"
                             type="date"
                             className="form-input"
                             value={interactionForm.prochaineRelanceDate}
@@ -950,8 +966,9 @@ export default function CommercialDirectRequestsPage({
                           />
                         </div>
                         <div className="filter-field">
-                          <label>Type de relance</label>
+                          <label htmlFor="interaction-relance-type">Type de relance</label>
                           <select
+                            id="interaction-relance-type"
                             className="form-input"
                             value={interactionForm.prochaineRelanceType}
                             onChange={(e) =>
@@ -986,8 +1003,11 @@ export default function CommercialDirectRequestsPage({
                       </div>
                     </div>
                     <div className="filter-field field-full">
-                      <label>{isAbandonedProspect ? 'Motif d’abandon' : 'Commentaire'}</label>
+                      <label htmlFor="interaction-commentaire">
+                        {isAbandonedProspect ? 'Motif d’abandon' : 'Commentaire'}
+                      </label>
                       <textarea
+                        id="interaction-commentaire"
                         className="form-input"
                         rows={3}
                         value={interactionForm.commentaire}

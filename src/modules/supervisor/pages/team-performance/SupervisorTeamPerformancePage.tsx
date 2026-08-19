@@ -3,6 +3,7 @@ import Chart from 'chart.js/auto';
 import { useSupervisorDecisionData } from '../decision-dashboard/useSupervisorDecisionData';
 import { barChartOptions } from '../decision-dashboard/chartOptions';
 import { chartColors, formatDays, formatRate, isDarkTheme } from '../decision-dashboard/supervisorDecisionMetrics';
+import { exportButtonProps } from '../decision-dashboard/chartExport';
 import '../../../../styles/page.shared.scss';
 import '../../../../styles/supervisor-overview.scss';
 
@@ -159,6 +160,27 @@ export default function SupervisorTeamPerformancePage() {
                     <h3>Assignées, validées et retours</h3>
                   </div>
                   <div className="decision-chart-wrap"><canvas ref={commercialChartRef} /></div>
+                  <button
+                    {...exportButtonProps(
+                      'performance-commerciales-vue-ensemble',
+                      'Commerciales',
+                      [
+                        { header: 'Commerciale', key: 'label', value: (r: (typeof metrics.commercialRows)[number]) => r.label },
+                        { header: 'Assignées', key: 'assigned', value: (r: (typeof metrics.commercialRows)[number]) => r.assigned },
+                        { header: 'Complétées', key: 'completed', value: (r: (typeof metrics.commercialRows)[number]) => r.completed },
+                        { header: 'Envoyées BOA', key: 'sentBoa', value: (r: (typeof metrics.commercialRows)[number]) => r.sentBoa },
+                        { header: 'Refus / incomplet', key: 'refusedOrIncomplete', value: (r: (typeof metrics.commercialRows)[number]) => r.refusedOrIncomplete },
+                        { header: 'Validées', key: 'validated', value: (r: (typeof metrics.commercialRows)[number]) => r.validated },
+                        { header: 'Conversion', key: 'conversionRate', value: (r: (typeof metrics.commercialRows)[number]) => r.conversionRate },
+                        { header: 'Délai moyen (j)', key: 'averageDays', value: (r: (typeof metrics.commercialRows)[number]) => r.averageDays }
+                      ],
+                      metrics.commercialRows
+                    )}
+                    type="button"
+                  >
+                    <span className="material-icons">download</span>{' '}
+                    Excel
+                  </button>
                 </article>
                 <div className="decision-table-wrap">
                   <table className="decision-table">
@@ -206,6 +228,23 @@ export default function SupervisorTeamPerformancePage() {
                 </div>
                 <article className="decision-chart-card decision-chart-card--full">
                   <div className="decision-chart-wrap"><canvas ref={topDirectChartRef} /></div>
+                  <button
+                    {...exportButtonProps(
+                      'performance-commerciales-prospection-directe',
+                      'Prospection directe',
+                      [
+                        { header: 'Commerciale', key: 'label', value: (r: (typeof metrics.topCommercialDirectRows)[number]) => r.label },
+                        { header: 'Créées', key: 'created', value: (r: (typeof metrics.topCommercialDirectRows)[number]) => r.created },
+                        { header: 'Converties', key: 'converted', value: (r: (typeof metrics.topCommercialDirectRows)[number]) => r.converted },
+                        { header: 'Taux conversion', key: 'conversionRate', value: (r: (typeof metrics.topCommercialDirectRows)[number]) => r.conversionRate }
+                      ],
+                      metrics.topCommercialDirectRows
+                    )}
+                    type="button"
+                  >
+                    <span className="material-icons">download</span>{' '}
+                    Excel
+                  </button>
                 </article>
                 <div className="decision-table-wrap">
                   <table className="decision-table">
@@ -240,6 +279,24 @@ export default function SupervisorTeamPerformancePage() {
                 </div>
                 <article className="decision-chart-card decision-chart-card--full">
                   <div className="decision-chart-wrap"><canvas ref={topAutoRegionChartRef} /></div>
+                  <button
+                    {...exportButtonProps(
+                      'performance-commerciales-auto-region',
+                      'Auto-affiliation région',
+                      [
+                        { header: 'Commerciale', key: 'label', value: (r: (typeof metrics.topCommercialAutoRegionRows)[number]) => r.label },
+                        { header: 'Région', key: 'region', value: (r: (typeof metrics.topCommercialAutoRegionRows)[number]) => r.region },
+                        { header: 'Traitées', key: 'treated', value: (r: (typeof metrics.topCommercialAutoRegionRows)[number]) => r.treated },
+                        { header: 'Validées', key: 'validated', value: (r: (typeof metrics.topCommercialAutoRegionRows)[number]) => r.validated },
+                        { header: 'Corrections/refus', key: 'correction', value: (r: (typeof metrics.topCommercialAutoRegionRows)[number]) => r.correction }
+                      ],
+                      metrics.topCommercialAutoRegionRows
+                    )}
+                    type="button"
+                  >
+                    <span className="material-icons">download</span>{' '}
+                    Excel
+                  </button>
                 </article>
                 <div className="decision-table-wrap">
                   <table className="decision-table">
@@ -283,6 +340,25 @@ export default function SupervisorTeamPerformancePage() {
                   <h3>Validés, refusés et corrections demandées</h3>
                 </div>
                 <div className="decision-chart-wrap"><canvas ref={boaChartRef} /></div>
+                <button
+                  {...exportButtonProps(
+                    'performance-back-office',
+                    'Back office',
+                    [
+                      { header: 'Back office', key: 'label', value: (r: (typeof metrics.boaRows)[number]) => r.label },
+                      { header: 'Traités', key: 'treated', value: (r: (typeof metrics.boaRows)[number]) => r.treated },
+                      { header: 'Validés', key: 'validated', value: (r: (typeof metrics.boaRows)[number]) => r.validated },
+                      { header: 'Refusés', key: 'refused', value: (r: (typeof metrics.boaRows)[number]) => r.refused },
+                      { header: 'Corrections', key: 'correction', value: (r: (typeof metrics.boaRows)[number]) => r.correction },
+                      { header: 'Délai moyen (j)', key: 'averageDays', value: (r: (typeof metrics.boaRows)[number]) => r.averageDays }
+                    ],
+                    metrics.boaRows
+                  )}
+                  type="button"
+                >
+                  <span className="material-icons">download</span>{' '}
+                  Excel
+                </button>
               </article>
               <article className="decision-chart-card">
                 <div className="decision-card-title">
@@ -290,7 +366,24 @@ export default function SupervisorTeamPerformancePage() {
                   <h3>Motifs fréquents</h3>
                 </div>
                 {metrics.refusalMotifPoints.length > 0 ? (
-                  <div className="decision-chart-wrap"><canvas ref={motifChartRef} /></div>
+                  <>
+                    <div className="decision-chart-wrap"><canvas ref={motifChartRef} /></div>
+                    <button
+                      {...exportButtonProps(
+                        'performance-motifs-refus',
+                        'Motifs',
+                        [
+                          { header: 'Motif', key: 'label', value: (p: (typeof metrics.refusalMotifPoints)[number]) => p.label },
+                          { header: 'Occurrences', key: 'value', value: (p: (typeof metrics.refusalMotifPoints)[number]) => p.value }
+                        ],
+                        metrics.refusalMotifPoints
+                      )}
+                      type="button"
+                    >
+                      <span className="material-icons">download</span>{' '}
+                      Excel
+                    </button>
+                  </>
                 ) : (
                   <div className="decision-chart-empty">
                     <span className="material-icons" aria-hidden="true">check_circle</span>

@@ -49,6 +49,7 @@ export const CORRECTION_FIELD_OPTIONS = [
   { value: 'siteMarchandUrl', label: 'Site marchand' },
   { value: 'applicationMobile', label: 'Application mobile' },
   { value: 'modeleQrSoftpos', label: 'Modèle QR / SoftPOS' },
+  { value: 'nombreQrSoftpos', label: 'Nombre QR / SoftPOS' },
   { value: 'services', label: 'Services LANA CASH' },
   { value: 'abonnementPackage', label: 'Abonnement' },
   { value: 'commissions', label: 'Commissions / frais' },

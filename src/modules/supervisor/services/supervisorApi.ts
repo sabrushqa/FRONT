@@ -178,6 +178,7 @@ export interface AffiliationRequestItem {
   siteMarchandUrl: string;
   applicationMobile: string;
   modeleQrSoftpos: string;
+  nombreQrSoftpos: number | null;
   commissionLocaleTpe: string;
   commissionEtrangereTpe: string;
   depotTpe: string;
@@ -235,7 +236,9 @@ export interface AffiliationRequestItem {
   requestedPdvTelephone: string;
   requestedPdvEmail: string;
   requestedPdvStatut: string;
+  requestedPdvDejaExistant: boolean;
   tpeDejaAffecte: boolean;
+  ecommerceSiteDejaAffecte: boolean;
   nombreCorrections: number;
   dernierMotifCorrection: string;
 }
@@ -339,6 +342,7 @@ export interface CommercialAffiliationDraftPayload extends AffiliationActivation
   siteMarchandUrl: string;
   applicationMobile: string;
   modeleQrSoftpos: string;
+  nombreQrSoftpos: string;
   rib: string;
   pointVentesJson: string;
   cinDocumentName: string;
@@ -426,6 +430,10 @@ export interface NotificationApiItem {
   type: string;
   dateEnvoi: string | null;
   read: boolean;
+  // Distingue un dossier d'extension (NOUVEAU_PDV) du dossier d'affiliation
+  // initial — necessaire cote back-office pour lier vers demande-extention/:id
+  // plutot que dossiers/:id au clic (voir BackofficeDashboard.tsx::mapNotification).
+  isNewPdvRequest: boolean;
 }
 
 export interface NotificationOverviewApiResponse {
@@ -445,6 +453,95 @@ export async function markAllNotificationsAsRead(): Promise<NotificationOverview
 
 export async function getOverview(): Promise<SupervisorOverviewResponse> {
   const res = await api.get<SupervisorOverviewResponse>(`${supervisorBase}/overview`);
+  return res.data;
+}
+
+export interface SupervisorTransactionItem {
+  id: string;
+  canal: string;
+  dateTransaction: string;
+  heureTransaction: string;
+  montant: number | null;
+  devise: string;
+  statut: string;
+  typePaiement: string;
+  tpe: string;
+  pdvId: number | null;
+  pdv: string;
+}
+
+export interface SupervisorCommercantTransactionsResponse {
+  commercantId: number;
+  commercantNom: string;
+  transactions: SupervisorTransactionItem[];
+}
+
+export async function getCommercantTransactions(commercantId: number): Promise<SupervisorCommercantTransactionsResponse> {
+  const res = await api.get<SupervisorCommercantTransactionsResponse>(
+    `${supervisorBase}/commercants/${commercantId}/transactions`
+  );
+  return res.data;
+}
+
+export async function downloadCommercantTicket(commercantId: number, transactionId: string): Promise<Blob> {
+  const res = await api.get(
+    `${supervisorBase}/commercants/${commercantId}/transactions/${encodeURIComponent(transactionId)}/ticket`,
+    { responseType: 'blob' }
+  );
+  return res.data as Blob;
+}
+
+export interface MerchantRiskItem {
+  commercantId: number;
+  nom: string;
+  secteur: string;
+  region: string;
+  typeAffiliation: string;
+  scoreRisque: number;
+  niveauRisque: string;
+  raisons: string[];
+  actionRecommandee: string;
+}
+
+export interface SectorRiskItem {
+  secteur: string;
+  nombreCommercants: number;
+  scoreMoyen: number;
+  nombreRisqueEleve: number;
+}
+
+export interface SectorCanalItem {
+  secteur: string;
+  canal: string;
+  nombreTransactions: number;
+  tauxRefus: number;
+}
+
+export interface SectorTpeUsageItem {
+  secteur: string;
+  nombreTpeActifs: number;
+  transactionsTpe: number;
+  transactionsParTpe: number;
+}
+
+export interface SupervisorRiskOverviewResponse {
+  commercantsAnalyses: number;
+  commercantsIgnores: number;
+  scoreMoyen: number;
+  nombreRisqueEleve: number;
+  nombreRisqueMoyen: number;
+  nombreRisqueFaible: number;
+  commercants: MerchantRiskItem[];
+  secteursRisque: SectorRiskItem[];
+  canalPerformance: SectorCanalItem[];
+  usageTpeParSecteur: SectorTpeUsageItem[];
+  // true si switch-monetique-service etait injoignable pendant le calcul :
+  // les chiffres de cette reponse sont alors partiels, pas "aucun risque".
+  donneesTransactionnellesIndisponibles: boolean;
+}
+
+export async function getRiskOverview(): Promise<SupervisorRiskOverviewResponse> {
+  const res = await api.get<SupervisorRiskOverviewResponse>(`${supervisorBase}/risk-overview`);
   return res.data;
 }
 
@@ -510,6 +607,14 @@ export async function sendCommercantActivation(id: number): Promise<SupervisorAc
   return res.data;
 }
 
+export async function resilierCommercant(id: number, motif?: string): Promise<SupervisorActionResponse> {
+  const res = await api.post<SupervisorActionResponse>(
+    `${supervisorBase}/commercants/${id}/resilier`,
+    motif ? { motif } : {}
+  );
+  return res.data;
+}
+
 export async function getTpeStock(): Promise<SupervisorTpeStockResponse> {
   const res = await api.get<SupervisorTpeStockResponse>(`${supervisorBase}/tpes`);
   return res.data;
@@ -536,6 +641,19 @@ export async function assignTpeToCommercant(
   id: string, payload: { dossierId: number }
 ): Promise<SupervisorActionResponse> {
   const res = await api.post<SupervisorActionResponse>(`${supervisorBase}/tpes/${id}/assign-commercant`, payload);
+  return res.data;
+}
+
+// Pas d'identifiant en entree : switch-monetique-service genere l'ID du site
+// e-commerce au provisionnement (pas de stock pre-existant a choisir, voir
+// SwitchMonetiqueClient::provisionnerSiteEcommerce cote backend) — le message
+// de reponse contient l'ID genere.
+export async function assignEcommerceSiteToCommercant(
+  payload: { dossierId: number; url?: string }
+): Promise<SupervisorActionResponse> {
+  const res = await api.post<SupervisorActionResponse>(
+    `${supervisorBase}/ecommerce-sites/assign-commercant`, payload
+  );
   return res.data;
 }
 

@@ -87,6 +87,18 @@ export default function CommercialDossiersPage({ requestScope = 'auto' }: { requ
     return request.status === 'EN_ATTENTE_VALIDATION_BOA';
   }
 
+  // Une extension ACCEPTE (contrat signe) n'est "terminee" pour le BOA que si
+  // elle ne necessite aucune affectation TPE/SoftPOS/QR (E_COMMERCE), ou si
+  // cette affectation a deja ete faite (tpeDejaAffecte) — sinon elle doit
+  // rester actionnable dans la liste, sans quoi le BOA n'a plus aucun moyen
+  // simple de retrouver "qui attend encore un TPE".
+  function isExtensionFullyHandled(request: AffiliationRequestItem): boolean {
+    if (request.status !== 'ACCEPTE' && request.status !== 'ABANDONNE') return false;
+    return request.status === 'ABANDONNE'
+      || request.typeAffiliation === 'E_COMMERCE'
+      || request.tpeDejaAffecte === true;
+  }
+
   useEffect(() => {
     setStatusFilter(defaultStatusFilter);
     setPageIndex(0);
@@ -106,10 +118,16 @@ export default function CommercialDossiersPage({ requestScope = 'auto' }: { requ
       const visibleRequests = isBackOfficeRole
         ? allRequests.filter((request) =>
             requestScope === 'new-pdv'
-              ? isNewPdvRequest(request)
+              // ACCEPTE veut seulement dire "contrat signe" : pour tout type
+              // sauf E_COMMERCE, le TPE/SoftPOS/QR reste a affecter APRES ce
+              // statut (isTpeExtensionFullyHandled ci-dessous, meme logique
+              // que canAssignTpe plus bas dans ce fichier) — le dossier ne doit
+              // disparaitre de cette liste active (et ne vivre que dans
+              // l'Historique) qu'une fois cette affectation reellement faite.
+              ? isNewPdvRequest(request) && !isExtensionFullyHandled(request)
               : isBackOfficeReviewRequest(request) && isAutoAffiliationRequest(request)
           )
-        : isCommercialRole
+        : isCommercialRole || role === 'SUPERVISEUR'
           ? allRequests.filter((request) =>
               requestScope === 'new-pdv' ? isNewPdvRequest(request) : isAutoAffiliationRequest(request)
             )
@@ -285,7 +303,7 @@ export default function CommercialDossiersPage({ requestScope = 'auto' }: { requ
     ? '/commercial/dossiers'
     : isBackOfficeRole
       ? requestScope === 'new-pdv' ? '/backoffice/demande-extention' : '/backoffice/dossiers'
-    : '/supervisor/affiliation-requests';
+    : requestScope === 'new-pdv' ? '/supervisor/demande-extention' : '/supervisor/affiliation-requests';
 
   function resetPage() {
     setPageIndex(0);

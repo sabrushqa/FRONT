@@ -1,17 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import SupervisorActivityConversionPage from './SupervisorActivityConversionPage';
+import { invalidateSupervisorDecisionDataCache } from '../decision-dashboard/useSupervisorDecisionData';
 
 const getOverviewMock = vi.fn();
 const getAffiliationRequestsMock = vi.fn();
 const getPdvMapMock = vi.fn();
 const getTpeStockMock = vi.fn();
+const downloadExcelMock = vi.fn();
 
 vi.mock('../../services/supervisorApi', () => ({
   getOverview: (...args: unknown[]) => getOverviewMock(...args),
   getAffiliationRequests: (...args: unknown[]) => getAffiliationRequestsMock(...args),
   getPdvMap: (...args: unknown[]) => getPdvMapMock(...args),
   getTpeStock: (...args: unknown[]) => getTpeStockMock(...args)
+}));
+
+vi.mock('../../../../core/excelExport', () => ({
+  downloadExcel: (...args: unknown[]) => downloadExcelMock(...args)
 }));
 
 function request(overrides: Partial<Record<string, unknown>> = {}) {
@@ -32,6 +38,8 @@ beforeEach(() => {
   getAffiliationRequestsMock.mockReset().mockResolvedValue({ requests: [request()] });
   getPdvMapMock.mockReset().mockResolvedValue({ pdvs: [] });
   getTpeStockMock.mockReset().mockResolvedValue({ tpes: [] });
+  downloadExcelMock.mockReset().mockResolvedValue(undefined);
+  invalidateSupervisorDecisionDataCache();
 });
 
 describe('SupervisorActivityConversionPage', () => {
@@ -47,5 +55,28 @@ describe('SupervisorActivityConversionPage', () => {
     getAffiliationRequestsMock.mockRejectedValue(new Error('503'));
     render(<SupervisorActivityConversionPage />);
     expect(await screen.findByText('Les indicateurs superviseur sont indisponibles.')).toBeInTheDocument();
+  });
+
+  it('propose un bouton Excel sur chacun des 6 graphiques et declenche bien un export au clic pour chacun', async () => {
+    render(<SupervisorActivityConversionPage />);
+    await screen.findByText('Auto-affiliation vs prospection directe');
+
+    const exportButtons = screen.getAllByRole('button', { name: /Excel/ });
+    expect(exportButtons).toHaveLength(6);
+
+    const expectedFileNames = [
+      'activite-conversion-par-origine',
+      'activite-conversion-auto-affiliation-mensuel',
+      'activite-conversion-prospection-statut',
+      'activite-conversion-prospection-region',
+      'activite-conversion-segmentation-type-affiliation',
+      'activite-conversion-segmentation-nature-commercant'
+    ];
+    exportButtons.forEach((button, index) => {
+      downloadExcelMock.mockClear();
+      fireEvent.click(button);
+      expect(downloadExcelMock).toHaveBeenCalledTimes(1);
+      expect(downloadExcelMock.mock.calls[0][0]).toBe(expectedFileNames[index]);
+    });
   });
 });

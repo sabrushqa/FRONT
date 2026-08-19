@@ -1,8 +1,39 @@
 /* ============================================================
    LANA CASH — DOSSIER DETAIL
-   Vue détail + formulaire édition (commercial / backoffice)
+   Vue détail + formulaire édition (commercial / backoffice / superviseur)
    Design: Navy + Golden Yellow — adaptatif automatique
    ============================================================ */
+
+/* ============================================================
+   VARIABLES MODE CLAIR (fallback local)
+   Ce fichier est partagé par CommercialDossierDetailPage et rendu sous
+   /commercial, /backoffice ET /supervisor. Les jetons --lc-* ci-dessous
+   n'etaient definis qu'en mode clair par commercial-page.scss, charge
+   uniquement sous /commercial — sous /supervisor et /backoffice, var(--lc-navy)
+   etc. n'avaient donc aucune valeur et le texte des titres de carte
+   (.info-card h3, color: var(--lc-navy)) heritait du blanc du bandeau
+   sombre parent au lieu d'utiliser la couleur prevue, le rendant illisible
+   sur fond clair. Meme valeurs que commercial-page.scss (mode clair) pour
+   rester visuellement identique partout ; le mode sombre reste gere plus
+   bas par [data-theme="dark"], deja correct sur tous les roles.
+   ============================================================ */
+
+:root {
+  --lc-gold:        #FFD224;
+  --lc-gold-soft:   rgba(255, 210, 36, 0.12);
+  --lc-gold-border: rgba(255, 210, 36, 0.42);
+  --lc-navy:        #0A1F44;
+  --lc-navy-mid:    #102A5C;
+  --lc-navy-soft:   rgba(10, 31, 68, 0.06);
+  --lc-surface:     #FFFFFF;
+  --lc-surface-alt: #F8FAFC;
+  --lc-text:        #1A2332;
+  --lc-muted:       #64748B;
+  --lc-line:        #E2E8F0;
+  --lc-line-soft:   #EEF2F7;
+  --lc-radius:      10px;
+  --lc-radius-lg:   14px;
+}
 
 /* ============================================================
    OVERRIDES PAGE-CARD POUR LE DETAIL

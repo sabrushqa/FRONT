@@ -9,6 +9,7 @@ import {
   deactivateBackOffice as apiDeactivateBackOffice,
   deactivateCommerciale as apiDeactivateCommerciale,
   deactivateCommercant as apiDeactivateCommercant,
+  resilierCommercant as apiResilierCommercant,
   getOverview,
   sendBackOfficeActivation as apiSendBackOfficeActivation,
   sendCommercialeActivation as apiSendCommercialeActivation,
@@ -270,6 +271,17 @@ export default function SupervisorDirectoryPage({ directoryType = 'backOffices' 
 
   function goToNextPage() {
     if (canGoToNextPage) setPageIndex((p) => p + 1);
+  }
+
+  // Action a impact fort (label metier reel "abandonne=1" + desactivation du
+  // compte) : confirmation explicite avant d'agir, contrairement a la simple
+  // desactivation qui reste reversible via "Renvoyer activation".
+  function handleResilier(item: CommercantDirectoryItem) {
+    if (!window.confirm(`Résilier définitivement "${item.nom}" ? Le compte sera désactivé et le contrat marqué comme résilié.`)) {
+      return;
+    }
+    const motif = window.prompt('Motif de la résiliation (optionnel) :') ?? undefined;
+    void runAction(item.id, () => apiResilierCommercant(item.id, motif || undefined), 'Impossible de résilier ce commerçant.');
   }
 
   async function runAction(id: number, action: () => Promise<{ message: string }>, fallback: string) {
@@ -777,14 +789,27 @@ export default function SupervisorDirectoryPage({ directoryType = 'backOffices' 
                       </td>
                       <td>
                         {item.active ? (
-                          <button
-                            type="button"
-                            className="btn-secondary btn-warn"
-                            disabled={isProcessing && processingId === item.id}
-                            onClick={() => runAction(item.id, () => apiDeactivateCommercant(item.id), 'Impossible de désactiver le compte commerçant.')}
-                          >
-                            {isProcessing && processingId === item.id ? 'Mise à jour...' : 'Désactiver'}
-                          </button>
+                          <div className="directory-actions-group">
+                            <button
+                              type="button"
+                              className="btn-secondary btn-warn"
+                              disabled={isProcessing && processingId === item.id}
+                              onClick={() => runAction(item.id, () => apiDeactivateCommercant(item.id), 'Impossible de désactiver le compte commerçant.')}
+                            >
+                              {isProcessing && processingId === item.id ? 'Mise à jour...' : 'Désactiver'}
+                            </button>
+                            {item.typeAffiliation && (
+                              <button
+                                type="button"
+                                className="btn-secondary btn-danger"
+                                disabled={isProcessing && processingId === item.id}
+                                onClick={() => handleResilier(item)}
+                                title="Marque le contrat comme résilié (label réel pour le modèle de risque) et désactive le compte"
+                              >
+                                {isProcessing && processingId === item.id ? 'Mise à jour...' : 'Résilier'}
+                              </button>
+                            )}
+                          </div>
                         ) : (
                           <button
                             type="button"

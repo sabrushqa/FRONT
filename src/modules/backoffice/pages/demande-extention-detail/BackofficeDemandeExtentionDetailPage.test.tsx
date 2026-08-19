@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import BackofficeDemandeExtentionDetailPage from './BackofficeDemandeExtentionDetailPage';
 
-const CommercialDossierDetailPageMock = vi.fn(() => <div data-testid="wrapped" />);
+const CommercialDossierDetailPageMock = vi.fn((_props: unknown) => <div data-testid="wrapped" />);
 
 vi.mock('../../../commercial/pages/dossier-detail/CommercialDossierDetailPage', () => ({
   default: (props: unknown) => CommercialDossierDetailPageMock(props)

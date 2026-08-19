@@ -338,7 +338,7 @@ export default function SupervisorPdvMapPage() {
           </div>
           {activeFilterCount > 0 && (
             <button type="button" className="pdv-map-filters-reset" onClick={clearFilters}>
-              <span className="material-icons">close</span>
+              <span className="material-icons">close</span>{' '}
               Réinitialiser
             </button>
           )}

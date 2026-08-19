@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useSessionStore } from '../../../../store/sessionStore';
+import { useSessionStore, useEffectiveAffiliationType } from '../../../../store/sessionStore';
 import api from '../../../../core/api';
 import { resolveBackendApiUrl } from '../../../../core/apiUrl';
 import '../../../../styles/commercant-reclamations.scss';
@@ -60,7 +60,11 @@ const INFO_DISPLAY: Array<[string, string, string]> = [
 function encodeWAV(samples: Float32Array, sr: number): Blob {
   const buf = new ArrayBuffer(44 + samples.length * 2);
   const v   = new DataView(buf);
-  const w   = (o: number, s: string) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  // charCodeAt() est le bon choix ici (pas codePointAt(), Sonar S7758) : ce
+  // sont des marqueurs ASCII fixes de l'en-tete WAV ("RIFF"/"WAVE"/"fmt "/"data"),
+  // un octet par caractere requis par le format binaire — pas du texte utilisateur
+  // pouvant contenir des caracteres hors du plan multilingue de base.
+  const w   = (o: number, s: string) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); }; // NOSONAR typescript:S7758
   w(0,'RIFF'); v.setUint32(4,36+samples.length*2,true);
   w(8,'WAVE'); w(12,'fmt ');
   v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
@@ -91,12 +95,23 @@ type TpeOption = NonNullable<ReturnType<typeof useSessionStore.getState>['sessio
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function CommercantReclamationsPage() {
   const { session } = useSessionStore();
+  // Espace actif (bascule ENCAISSEMENT / E-COMMERCE, voir CommercantDashboard) —
+  // transmis au chatbot a chaque message pour qu'un commercant a affiliation
+  // combinee qui consulte cote e-commerce n'ait pas de reponse/diagnostic TPE
+  // (et inversement). Sans ca, orchestrator.py ne voit que le typeAffiliation
+  // brut du dossier (ENCAISSEMENT_ET_ECOMMERCE) et ne peut jamais distinguer
+  // les deux espaces.
+  const effectiveAffiliationType = useEffectiveAffiliationType();
+  const isEcommerceSpace = effectiveAffiliationType === 'E_COMMERCE';
 
   const merchantName = session?.profile?.nom  || session?.nom  || 'Commerçant';
   const phone        = session?.profile?.telephone || '';
   const ville        = session?.profile?.ville || '';
   const adresse      = (session?.pdvs?.[0]?.adresse) || '';
   const location     = [adresse, ville].filter(Boolean).join(', ');
+  const siteMarchandUrl   = session?.profile?.siteMarchandUrl || '';
+  const applicationMobile = session?.profile?.applicationMobile || '';
+  const ecommerceSiteLabel = siteMarchandUrl || applicationMobile || '';
 
   const [msgs,       setMsgs]       = useState<Msg[]>([]);
   const [draft,      setDraft]      = useState('');
@@ -113,7 +128,11 @@ export default function CommercantReclamationsPage() {
   // le modèle, ou pire, traite un message "e-commerce" comme un problème du
   // TPE — vu en réel). null = pas encore choisi ; s'il n'a aucun TPE
   // (commerçant e-commerce pur), on saute directement le picker.
-  const hasTpes = (session?.tpes?.length ?? 0) > 0;
+  // Cote e-commerce (bascule d'espace, ou dossier E_COMMERCE pur), il n'y a
+  // ni TPE ni PDV a choisir — le picker et le contexte TPE n'ont pas de sens
+  // ici, quand bien meme le commerçant possederait par ailleurs de vrais TPE
+  // (cas ENCAISSEMENT_ET_ECOMMERCE cote Encaissement).
+  const hasTpes = !isEcommerceSpace && (session?.tpes?.length ?? 0) > 0;
   const [selectedTpe, setSelectedTpe] = useState<TpeOption | null>(null);
   const tpePdv = selectedTpe
     ? session?.pdvs?.find(p => p.id === selectedTpe.pdvId)
@@ -141,18 +160,26 @@ export default function CommercantReclamationsPage() {
 
   // ── Init: welcome + prefill ──────────────────────────────────────────────────
   const initChat = useCallback(async () => {
-    const tpeMention = selectedTpe
-      ? `\nConcernant votre **${formatTpeLabel(selectedTpe)}**${tpePdv ? ` — ${tpePdv.nom}, ${tpePdv.ville}` : ''}.`
-      : '';
+    const contextMention = isEcommerceSpace
+      ? (ecommerceSiteLabel ? `\nConcernant votre canal e-commerce **${ecommerceSiteLabel}**.` : '')
+      : (selectedTpe
+          ? `\nConcernant votre **${formatTpeLabel(selectedTpe)}**${tpePdv ? ` — ${tpePdv.nom}, ${tpePdv.ville}` : ''}.`
+          : '');
     setMsgs([{
       id: 0, from: 'bot', time: ts(),
-      text: `Bonjour ${merchantName} ! Je suis **Lana Assist**.${tpeMention}\nDécrivez votre problème — je m'occupe du reste 🤝\n_Darija · Français · English_`
+      text: `Bonjour ${merchantName} ! Je suis **Lana Assist**.${contextMention}\nDécrivez votre problème — je m'occupe du reste 🤝\n_Darija · Français · English_`
     }]);
     setSid(null); setInfo({}); setTicketDone(false); setPrefilled(false);
-  }, [merchantName, selectedTpe, tpePdv]);
+  }, [merchantName, selectedTpe, tpePdv, isEcommerceSpace, ecommerceSiteLabel]);
+
+  // Un TPE choisi avant de basculer vers l'espace e-commerce (profileSwitcher)
+  // n'a plus de sens ici — evite un contexte TPE perime dans le pill/prefill.
+  useEffect(() => {
+    if (isEcommerceSpace && selectedTpe) setSelectedTpe(null);
+  }, [isEcommerceSpace, selectedTpe]);
 
   // Ne demarre la conversation qu'une fois le choix du TPE fait (ou d'emblee
-  // s'il n'y a rien a choisir — commerçant e-commerce pur).
+  // s'il n'y a rien a choisir — commerçant e-commerce pur ou espace e-commerce actif).
   useEffect(() => {
     if (hasTpes && !selectedTpe) return;
     initChat();
@@ -176,20 +203,26 @@ export default function CommercantReclamationsPage() {
     params.set('session_id', sid);
     if (phone)        params.set('phone', phone);
     if (merchantName) params.set('merchant_name', merchantName);
-    if (location)     params.set('location', location);
-    if (ville)         params.set('commercant_ville', ville);
-    if (selectedTpe) {
-      params.set('tpe_id',    selectedTpe.numeroSerie);
-      params.set('tpe_model', selectedTpe.modele);
-      if (tpePdv) {
-        params.set('pdv_nom',   tpePdv.nom);
-        params.set('pdv_ville', tpePdv.ville);
+    if (isEcommerceSpace) {
+      // Pas de PDV/TPE en e-commerce : le site marchand / l'appli mobile
+      // tient lieu de "localisation" pour le contexte du bot.
+      if (ecommerceSiteLabel) params.set('location', ecommerceSiteLabel);
+    } else {
+      if (location) params.set('location', location);
+      if (ville)    params.set('commercant_ville', ville);
+      if (selectedTpe) {
+        params.set('tpe_id',    selectedTpe.numeroSerie);
+        params.set('tpe_model', selectedTpe.modele);
+        if (tpePdv) {
+          params.set('pdv_nom',   tpePdv.nom);
+          params.set('pdv_ville', tpePdv.ville);
+        }
       }
     }
 
     api.post(`${CHATBOT_URL}/session/prefill`, null, { params })
       .catch(() => {/* silent */});
-  }, [sid, prefilled, phone, merchantName, location, ville, selectedTpe, tpePdv]);
+  }, [sid, prefilled, phone, merchantName, location, ville, selectedTpe, tpePdv, isEcommerceSpace, ecommerceSiteLabel]);
 
   // ── Send text ───────────────────────────────────────────────────────────────
   async function sendText(text: string) {
@@ -288,6 +321,7 @@ export default function CommercantReclamationsPage() {
   async function callChat(body: Record<string, string>) {
     setTyping(true);
     if (sid) body.session_id = sid;
+    if (effectiveAffiliationType) body.active_profile = effectiveAffiliationType;
     try {
       const { data: d } = await api.post(`${CHATBOT_URL}/message`, body);
       handleReply(d);
@@ -401,9 +435,9 @@ export default function CommercantReclamationsPage() {
             </div>
             <div className="lc-head-info">
               <span className="lc-head-name">{BOT_NAME}</span>
-              <span className="lc-head-sub">Support TPE · FR · Darija · عربي · EN</span>
+              <span className="lc-head-sub">{isEcommerceSpace ? 'Support e-commerce' : 'Support TPE'} · FR · Darija · عربي · EN</span>
             </div>
-            <button className="lc-btn-icon" title="Nouvelle conversation" onClick={initChat}>
+            <button type="button" className="lc-btn-icon" title="Nouvelle conversation" onClick={initChat}>
               <span className="material-icons">refresh</span>
             </button>
           </div>
@@ -412,19 +446,26 @@ export default function CommercantReclamationsPage() {
           <div className="lc-ctx-pill">
             <span className="material-icons">verified_user</span>
             {merchantName}
-            {selectedTpe && ` · ${formatTpeLabel(selectedTpe)}`}
-            {tpePdv && ` · ${tpePdv.nom}, ${tpePdv.ville}`}
-            {!selectedTpe && ville && ` · ${ville}`}
-            {selectedTpe && (
-              <button type="button" className="lc-change-tpe" onClick={changeTpe}>
-                Changer de TPE
-              </button>
-            )}
+            {isEcommerceSpace
+              ? (ecommerceSiteLabel && ` · ${ecommerceSiteLabel}`)
+              : (
+                <>
+                  {selectedTpe && ` · ${formatTpeLabel(selectedTpe)}`}
+                  {tpePdv && ` · ${tpePdv.nom}, ${tpePdv.ville}`}
+                  {!selectedTpe && ville && ` · ${ville}`}
+                  {selectedTpe && (
+                    <button type="button" className="lc-change-tpe" onClick={changeTpe}>
+                      Changer de TPE
+                    </button>
+                  )}
+                </>
+              )}
           </div>
 
           {/* TPE picker — le commerçant doit choisir EXPLICITEMENT le TPE
               concerné avant de pouvoir discuter, pour que l'agent reçoive un
-              contexte fiable (réduit l'hallucination) plutôt que de deviner. */}
+              contexte fiable (réduit l'hallucination) plutôt que de deviner.
+              Jamais affiché cote e-commerce (hasTpes vaut alors toujours false). */}
           {hasTpes && !selectedTpe ? (
             <div className="lc-tpe-picker">
               <p className="lc-tpe-picker-title">Quel TPE est concerné ?</p>
@@ -484,7 +525,7 @@ export default function CommercantReclamationsPage() {
                       <pre className="lc-tdesc">{msg.ticket.summary}</pre>
                       {ticketDone && (
                         <div className="lc-tsaved">
-                          <span className="material-icons" style={{fontSize:14}}>check_circle</span>
+                          <span className="material-icons" style={{fontSize:14}}>check_circle</span>{' '}
                           Réclamation enregistrée dans votre espace
                         </div>
                       )}
@@ -513,7 +554,7 @@ export default function CommercantReclamationsPage() {
           {/* Composer */}
           <div className="lc-composer">
             {/* Image */}
-            <button className="lc-btn-icon" title="Joindre une photo" onClick={() => fileRef.current?.click()}>
+            <button type="button" className="lc-btn-icon" title="Joindre une photo" onClick={() => fileRef.current?.click()}>
               <span className="material-icons">add_photo_alternate</span>
             </button>
             <input ref={fileRef} type="file" accept="image/*" hidden
@@ -531,6 +572,7 @@ export default function CommercantReclamationsPage() {
 
             {/* Mic */}
             <button
+              type="button"
               className={`lc-mic-btn${recording ? ' lc-mic-btn--on' : ''}`}
               title={recording ? `Arrêter (${recLabel})` : 'Message vocal'}
               onClick={toggleRecording}
@@ -543,7 +585,7 @@ export default function CommercantReclamationsPage() {
 
             {/* Send */}
             {draft.trim() && (
-              <button className="lc-send" onClick={() => sendText(draft)} disabled={typing}>
+              <button type="button" className="lc-send" onClick={() => sendText(draft)} disabled={typing}>
                 <span className="material-icons">send</span>
               </button>
             )}
@@ -564,14 +606,23 @@ export default function CommercantReclamationsPage() {
             <div className="lc-side-body">
               <div className="lc-srow"><span className="material-icons">person</span>{merchantName}</div>
               {phone    && <div className="lc-srow"><span className="material-icons">phone</span>{phone}</div>}
-              {ville    && <div className="lc-srow"><span className="material-icons">location_on</span>{ville}</div>}
-              {adresse  && <div className="lc-srow lc-srow--sub"><span className="material-icons">navigate_next</span>{adresse}</div>}
-
+              {isEcommerceSpace ? (
+                ecommerceSiteLabel && (
+                  <div className="lc-srow"><span className="material-icons">language</span>{ecommerceSiteLabel}</div>
+                )
+              ) : (
+                <>
+                  {ville    && <div className="lc-srow"><span className="material-icons">location_on</span>{ville}</div>}
+                  {adresse  && <div className="lc-srow lc-srow--sub"><span className="material-icons">navigate_next</span>{adresse}</div>}
+                </>
+              )}
             </div>
           </div>
 
-          {/* TPE list */}
-          {session?.tpes && session.tpes.length > 0 && (
+          {/* TPE list — jamais en espace e-commerce (aucun TPE physique n'a
+              de sens ici, meme si le compte en possede par ailleurs cote
+              Encaissement pour un dossier combine). */}
+          {!isEcommerceSpace && session?.tpes && session.tpes.length > 0 && (
             <div className="lc-side-card">
               <div className="lc-side-head">
                 <span className="material-icons">point_of_sale</span>
